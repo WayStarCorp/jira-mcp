@@ -73,88 +73,88 @@ describe("JiraUrlBuilder", () => {
 
     describe("query parameters", () => {
       it("should build URL without query parameters", () => {
-        const url = builder.buildUrl("search");
+        const url = builder.buildUrl("search/jql");
 
-        expect(url).toBe("https://example.atlassian.net/rest/api/3/search");
+        expect(url).toBe("https://example.atlassian.net/rest/api/3/search/jql");
       });
 
       it("should build URL with single query parameter", () => {
-        const url = builder.buildUrl("search", { jql: "project = TEST" });
+        const url = builder.buildUrl("search/jql", { jql: "project = TEST" });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?jql=project+%3D+TEST",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+TEST",
         );
       });
 
       it("should build URL with multiple query parameters", () => {
-        const url = builder.buildUrl("search", {
+        const url = builder.buildUrl("search/jql", {
           jql: "project = TEST",
           maxResults: 50,
           startAt: 0,
         });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?jql=project+%3D+TEST&maxResults=50&startAt=0",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+TEST&maxResults=50&startAt=0",
         );
       });
 
       it("should build URL with boolean query parameters", () => {
-        const url = builder.buildUrl("search", {
+        const url = builder.buildUrl("search/jql", {
           expand: true,
           validateQuery: false,
         });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?expand=true&validateQuery=false",
+          "https://example.atlassian.net/rest/api/3/search/jql?expand=true&validateQuery=false",
         );
       });
 
       it("should skip undefined query parameters", () => {
-        const url = builder.buildUrl("search", {
+        const url = builder.buildUrl("search/jql", {
           jql: "project = TEST",
           maxResults: undefined,
           startAt: 0,
         });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?jql=project+%3D+TEST&startAt=0",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+TEST&startAt=0",
         );
       });
 
       it("should handle empty query parameters object", () => {
-        const url = builder.buildUrl("search", {});
+        const url = builder.buildUrl("search/jql", {});
 
-        expect(url).toBe("https://example.atlassian.net/rest/api/3/search");
+        expect(url).toBe("https://example.atlassian.net/rest/api/3/search/jql");
       });
 
       it("should handle query parameters with special characters", () => {
-        const url = builder.buildUrl("search", {
+        const url = builder.buildUrl("search/jql", {
           jql: 'summary ~ "test & development"',
         });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?jql=summary+%7E+%22test+%26+development%22",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=summary+%7E+%22test+%26+development%22",
         );
       });
 
       it("should handle numeric query parameters", () => {
-        const url = builder.buildUrl("search", {
+        const url = builder.buildUrl("search/jql", {
           maxResults: 100,
           startAt: 25,
         });
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?maxResults=100&startAt=25",
+          "https://example.atlassian.net/rest/api/3/search/jql?maxResults=100&startAt=25",
         );
       });
     });
 
     describe("edge cases", () => {
       it("should handle endpoint with query parameters but no query object", () => {
-        const url = builder.buildUrl("search?existing=param");
+        const url = builder.buildUrl("search/jql?existing=param");
 
         expect(url).toBe(
-          "https://example.atlassian.net/rest/api/3/search?existing=param",
+          "https://example.atlassian.net/rest/api/3/search/jql?existing=param",
         );
       });
 

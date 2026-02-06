@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced performance optimizations
 - Advanced JIRA automation workflows
 
+## [0.5.4-waystar.1] - 2026-02-06
+
+### 🐛 Fixes
+
+- **Jira Cloud search API compatibility**: updated issue search to use `/rest/api/3/search/jql` (GET with query params) to restore search functionality after Atlassian API changes.
+
 ## [0.5.4] - 2025-01-18
 
 ### 🐛 Critical Bug Fixes

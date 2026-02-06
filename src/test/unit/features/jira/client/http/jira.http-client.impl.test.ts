@@ -144,7 +144,7 @@ describe("JiraHttpClient", () => {
         mockFetch.mockResolvedValue(mockResponse);
 
         const options: HttpRequestOptions = {
-          endpoint: "search",
+          endpoint: "search/jql",
           method: "GET",
           queryParams: {
             jql: "project = TEST",
@@ -157,7 +157,7 @@ describe("JiraHttpClient", () => {
 
         expect(result).toEqual(mockResponseData);
         expect(mockFetch).toHaveBeenCalledWith(
-          "https://example.atlassian.net/rest/api/3/search?jql=project+%3D+TEST&maxResults=50&startAt=0",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+TEST&maxResults=50&startAt=0",
           expect.any(Object),
         );
       });
@@ -468,7 +468,7 @@ describe("JiraHttpClient", () => {
         mockFetch.mockResolvedValue(mockResponse);
 
         const options: HttpRequestOptions = {
-          endpoint: "search",
+          endpoint: "search/jql",
           method: "GET",
           queryParams: {
             jql: "project = TEST",
@@ -481,7 +481,7 @@ describe("JiraHttpClient", () => {
 
         expect(result).toEqual(mockResponseData);
         expect(mockFetch).toHaveBeenCalledWith(
-          "https://example.atlassian.net/rest/api/3/search?jql=project+%3D+TEST&startAt=0",
+          "https://example.atlassian.net/rest/api/3/search/jql?jql=project+%3D+TEST&startAt=0",
           expect.any(Object),
         );
       });

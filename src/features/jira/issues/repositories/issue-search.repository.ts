@@ -21,13 +21,13 @@ export class IssueSearchRepositoryImpl implements IssueSearchRepository {
     const { jql, maxResults = 50, fields = [], startAt = 0 } = options;
 
     const response = await this.client.sendRequest<SearchIssuesResponse>({
-      endpoint: "search",
-      method: "POST",
-      body: {
+      endpoint: "search/jql",
+      method: "GET",
+      queryParams: {
         jql,
         maxResults,
-        fields,
         startAt,
+        fields: fields.length > 0 ? fields.join(",") : undefined,
       },
     });
 

@@ -82,7 +82,7 @@ Add this configuration to your MCP client:
   "mcpServers": {
     "JIRA Tools": {
       "command": "bunx",
-      "args": ["-y", "@dsazz/mcp-jira@latest"],
+      "args": ["-y", "@waystar/jira-mcp@latest"],
       "env": {
         "JIRA_HOST": "https://your-domain.atlassian.net",
         "JIRA_USERNAME": "your-email@example.com",
@@ -99,8 +99,8 @@ For local development and testing:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Dsazz/mcp-jira.git
-cd mcp-jira
+git clone https://github.com/WayStarCorp/jira-mcp.git
+cd jira-mcp
 
 # Install dependencies
 bun install

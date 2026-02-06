@@ -124,7 +124,7 @@ export const jiraApiMocks = {
     const searchResult =
       scenarioData?.data.searchResults || mockFactory.createMockSearchResult();
 
-    return mockHttp.mockJiraApiSuccess("/rest/api/3/search", searchResult);
+    return mockHttp.mockJiraApiSuccess("/rest/api/3/search/jql", searchResult);
   },
 
   /**
@@ -136,7 +136,7 @@ export const jiraApiMocks = {
       scenarioData?.data.searchResults || mockFactory.createMockSearchResult();
 
     return mockHttp.mockJiraApiSuccess(
-      "/rest/api/3/search?jql=assignee=currentUser()",
+      "/rest/api/3/search/jql",
       searchResult,
     );
   },
