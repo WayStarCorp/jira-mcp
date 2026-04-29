@@ -51,21 +51,17 @@ export class JiraResponseHandler {
    */
   private async parseJsonResponse<T>(response: Response): Promise<T> {
     try {
-      if (typeof response.text === "function") {
-        const text = await response.text();
-
-        if (!text.trim()) {
-          return {} as T;
-        }
-
-        return JSON.parse(text) as T;
+      if (typeof response.text !== "function") {
+        throw new TypeError("Response body text reader is unavailable");
       }
 
-      if (typeof response.json === "function") {
-        return (await response.json()) as T;
+      const text = await response.text();
+
+      if (!text.trim()) {
+        return {} as T;
       }
 
-      return {} as T;
+      return JSON.parse(text) as T;
     } catch (error) {
       throw new Error(
         `Failed to parse JSON response: ${error instanceof Error ? error.message : String(error)}`,

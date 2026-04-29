@@ -251,7 +251,10 @@ function createUseCases(
     getBoardsUseCase: new GetBoardsUseCaseImpl(repositories.boardRepository),
 
     // Sprint use cases
-    getSprintsUseCase: new GetSprintsUseCaseImpl(repositories.sprintRepository),
+    getSprintsUseCase: new GetSprintsUseCaseImpl(
+      repositories.sprintRepository,
+      repositories.boardRepository,
+    ),
     addIssuesToSprintUseCase: new AddIssuesToSprintUseCaseImpl(
       repositories.sprintRepository,
     ),

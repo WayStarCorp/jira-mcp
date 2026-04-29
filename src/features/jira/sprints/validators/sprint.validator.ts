@@ -17,7 +17,11 @@ import {
  * Schema for getting sprints parameters
  */
 export const getSprintsParamsSchema = z.object({
-  boardId: z.number().int().min(1, "Board ID must be a positive integer"),
+  boardId: z
+    .number()
+    .int()
+    .min(1, "Board ID must be a positive integer")
+    .optional(),
 
   // Pagination
   startAt: z.number().int().min(0).optional().default(0),
@@ -30,7 +34,7 @@ export const getSprintsParamsSchema = z.object({
 /**
  * Type for get sprints parameters
  */
-export type GetSprintsParams = z.infer<typeof getSprintsParamsSchema>;
+export type GetSprintsParams = z.input<typeof getSprintsParamsSchema>;
 
 /**
  * Schema for getting single sprint parameters

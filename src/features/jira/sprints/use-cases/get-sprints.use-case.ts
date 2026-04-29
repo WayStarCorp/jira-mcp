@@ -5,6 +5,8 @@
  */
 
 import { JiraApiError } from "@features/jira/client/errors";
+import { BoardType } from "../../boards/models";
+import type { BoardRepository } from "../../boards/repositories";
 import type { Sprint, SprintState } from "../models";
 import type { SprintRepository } from "../repositories/sprint.repository";
 
@@ -12,7 +14,7 @@ import type { SprintRepository } from "../repositories/sprint.repository";
  * Request parameters for get sprints use case
  */
 export interface GetSprintsUseCaseRequest {
-  boardId: number;
+  boardId?: number;
   state?: SprintState;
   startAt?: number;
   maxResults?: number;
@@ -40,7 +42,10 @@ export class GetSprintsUseCaseImpl implements GetSprintsUseCase {
    *
    * @param sprintRepository - Repository for sprint operations
    */
-  constructor(private readonly sprintRepository: SprintRepository) {}
+  constructor(
+    private readonly sprintRepository: SprintRepository,
+    private readonly boardRepository: BoardRepository,
+  ) {}
 
   /**
    * Execute the get sprints use case
@@ -50,6 +55,10 @@ export class GetSprintsUseCaseImpl implements GetSprintsUseCase {
    */
   public async execute(request: GetSprintsUseCaseRequest): Promise<Sprint[]> {
     try {
+      if (request.boardId === undefined) {
+        return await this.getSprintsFromAllScrumBoards(request);
+      }
+
       // Get sprints using repository with provided parameters
       return await this.sprintRepository.getSprints(request.boardId, {
         state: request.state,
@@ -66,5 +75,25 @@ export class GetSprintsUseCaseImpl implements GetSprintsUseCase {
       }
       throw error;
     }
+  }
+
+  private async getSprintsFromAllScrumBoards(
+    request: GetSprintsUseCaseRequest,
+  ): Promise<Sprint[]> {
+    const boards = await this.boardRepository.getBoards({
+      type: BoardType.SCRUM,
+      maxResults: 50,
+    });
+    const sprintGroups = await Promise.all(
+      boards.map((board) =>
+        this.sprintRepository.getSprints(Number(board.id), {
+          state: request.state,
+          startAt: request.startAt,
+          maxResults: request.maxResults,
+        }),
+      ),
+    );
+
+    return sprintGroups.flat();
   }
 }
