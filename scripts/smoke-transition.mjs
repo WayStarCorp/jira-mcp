@@ -16,7 +16,7 @@ const accountId = process.env.JIRA_TEST_ACCOUNT_ID;
 const transport = new StdioClientTransport({
   command: "node",
   args: ["dist/index.js"],
-  cwd: "c:/sites/jira-mcp",
+  cwd: process.cwd(),
   env: { ...process.env },
 });
 

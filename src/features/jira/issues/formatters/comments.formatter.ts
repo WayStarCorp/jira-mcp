@@ -138,7 +138,7 @@ export class CommentsFormatter
   private formatDate(dateString: string): string {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",

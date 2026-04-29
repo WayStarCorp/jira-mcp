@@ -58,7 +58,9 @@ describe("CommentsFormatter", () => {
 
       expect(result).toContain("# 💬 Comments for TEST-123");
       expect(result).toContain("**Total:** 1 comment");
-      expect(result).toContain("## Comment #1 • John Doe •");
+      expect(result).toContain(
+        "## Comment #1 • John Doe • Jan 15, 2024, 10:30 AM",
+      );
       expect(result).toContain("This is a test comment");
       expect(result).not.toContain("Navigation:");
     });
@@ -378,7 +380,7 @@ describe("CommentsFormatter", () => {
 
       const result = formatter.format({ comments, context });
 
-      expect(result).toContain("**Latest:** Jan 16, 2024");
+      expect(result).toContain("**Latest:** Jan 16, 2024, 02:45 PM");
     });
 
     test("should use singular form for single comment in navigation", () => {
