@@ -53,6 +53,8 @@ describe("IssueFormatter", () => {
       expect(result).toContain("## Dates");
       expect(result).toContain("**Created**:");
       expect(result).toContain("**Updated**:");
+      expect(result).toContain("Jan 15, 2024");
+      expect(result).toContain("Jan 16, 2024");
       expect(result).toContain(
         "[View in JIRA](https://company.atlassian.net/browse/TEST-123)",
       );
@@ -291,9 +293,9 @@ describe("IssueFormatter", () => {
 
       const result = formatter.format(issue);
 
-      // Should contain formatted dates (exact format depends on locale)
-      expect(result).toMatch(/\*\*Created\*\*: \d{1,2}\/\d{1,2}\/\d{4}/);
-      expect(result).toMatch(/\*\*Updated\*\*: \d{1,2}\/\d{1,2}\/\d{4}/);
+      // Should contain formatted dates in the explicit en-US month-name format
+      expect(result).toContain("Jan 15, 2024");
+      expect(result).toContain("Jan 16, 2024");
     });
 
     test("should handle missing self URL", () => {

@@ -199,6 +199,122 @@ describe("CreateIssueUseCase", () => {
       );
     });
 
+    it("should not allow custom fields to overwrite reserved fields", async () => {
+      const request: CreateIssueUseCaseRequest = {
+        projectKey: "SAFE",
+        summary: "Safe summary",
+        issueType: "Bug",
+        storyPoints: 5,
+        customFields: {
+          summary: "Hacked summary",
+          project: { key: "EVIL" },
+          issuetype: { name: "Epic" },
+          duedate: "2026-01-01",
+          reporter: { accountId: "evil-user" },
+          customfield_10016: 99,
+          customfield_12345: "allowed custom field",
+        },
+      };
+
+      const mockIssue = mockFactory.createMockIssue({ key: "SAFE-999" });
+
+      mockProjectValidator.validateProject.mockResolvedValue(undefined);
+      mockPermissionChecker.hasCreateIssuePermission.mockResolvedValue(true);
+      mockProjectValidator.validateIssueType.mockResolvedValue(undefined);
+      mockIssueRepository.createIssue.mockResolvedValue(mockIssue);
+
+      await useCase.execute(request);
+
+      const createCall = mockIssueRepository.createIssue.mock.calls[0][0];
+      expect(createCall.fields.summary).toBe("Safe summary");
+      expect(createCall.fields.project).toEqual({ key: "SAFE" });
+      expect(createCall.fields.issuetype).toEqual({ name: "Bug" });
+      expect(createCall.fields.customfield_10016).toBe(5);
+      expect(createCall.fields.duedate).toBeUndefined();
+      expect(createCall.fields.reporter).toBeUndefined();
+      expect(createCall.fields.customfield_12345).toBe("allowed custom field");
+    });
+
+    it("should allow customfield_10016 from customFields when story points are absent", async () => {
+      const request: CreateIssueUseCaseRequest = {
+        projectKey: "SAFE",
+        summary: "Safe summary",
+        issueType: "Bug",
+        customFields: {
+          customfield_10016: 8,
+        },
+      };
+
+      const mockIssue = mockFactory.createMockIssue({ key: "SAFE-998" });
+
+      mockProjectValidator.validateProject.mockResolvedValue(undefined);
+      mockPermissionChecker.hasCreateIssuePermission.mockResolvedValue(true);
+      mockProjectValidator.validateIssueType.mockResolvedValue(undefined);
+      mockIssueRepository.createIssue.mockResolvedValue(mockIssue);
+
+      await useCase.execute(request);
+
+      const createCall = mockIssueRepository.createIssue.mock.calls[0][0];
+      expect(createCall.fields.customfield_10016).toBe(8);
+    });
+
+    it("should create issue with all optional fields", async () => {
+      const request: CreateIssueUseCaseRequest = {
+        projectKey: "PROJ",
+        summary: "Complex issue with all fields",
+        issueType: "Bug",
+        description: "Detailed description",
+        priority: "High",
+        assignee: "account-123",
+        labels: ["urgent", "frontend"],
+        components: ["Frontend", "API"],
+        fixVersions: ["1.0.0"],
+        parentIssueKey: "PROJ-1",
+        timeEstimate: "4h",
+        environment: "Production",
+        storyPoints: 5,
+        customFields: {
+          customfield_12345: "custom value",
+        },
+      };
+
+      const mockIssue = mockFactory.createMockIssue({ key: "PROJ-789" });
+
+      mockProjectValidator.validateProject.mockResolvedValue(undefined);
+      mockPermissionChecker.hasCreateIssuePermission.mockResolvedValue(true);
+      mockProjectValidator.validateIssueType.mockResolvedValue(undefined);
+      mockIssueRepository.createIssue.mockResolvedValue(mockIssue);
+
+      await useCase.execute(request);
+
+      expect(mockIssueRepository.createIssue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fields: expect.objectContaining({
+            project: { key: "PROJ" },
+            summary: "Complex issue with all fields",
+            issuetype: { name: "Bug" },
+            priority: { name: "High" },
+            assignee: { accountId: "account-123" },
+            labels: ["urgent", "frontend"],
+            components: [{ name: "Frontend" }, { name: "API" }],
+            fixVersions: [{ name: "1.0.0" }],
+            parent: { key: "PROJ-1" },
+            timetracking: { originalEstimate: "4h" },
+            customfield_10016: 5,
+            customfield_12345: "custom value",
+          }),
+        }),
+      );
+
+      const createCall = mockIssueRepository.createIssue.mock.calls[0][0];
+      expect(createCall.fields.description).toEqual(
+        expect.objectContaining({ type: "doc" }),
+      );
+      expect(createCall.fields.environment).toEqual(
+        expect.objectContaining({ type: "doc" }),
+      );
+    });
+
     it("should handle empty description gracefully", async () => {
       const request: CreateIssueUseCaseRequest = {
         projectKey: "TEST",

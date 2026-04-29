@@ -1,12 +1,12 @@
-import { describe, expect, it, mock, beforeEach, afterEach } from "bun:test";
-import { JiraHttpClient } from "@features/jira/client/http/jira.http-client.impl";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import type { JiraConfigService } from "@features/jira/client/config/jira-config.service";
-import type { HttpRequestOptions } from "@features/jira/client/http/jira.http.types";
 import {
   JiraApiError,
   JiraAuthenticationError,
   JiraNetworkError,
 } from "@features/jira/client/errors";
+import { JiraHttpClient } from "@features/jira/client/http/jira.http-client.impl";
+import type { HttpRequestOptions } from "@features/jira/client/http/jira.http.types";
 
 // Mock the global fetch function
 const mockFetch = mock();

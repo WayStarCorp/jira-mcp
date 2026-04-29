@@ -169,7 +169,8 @@ describe("JiraResponseHandler", () => {
       it("should handle non-Error objects in JSON parsing", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject("String error")),
+          // Rejection is not an Error on purpose: covers the `String(error)` branch in parseJsonResponse
+          json: mock(() => Promise.reject("String error" as never)), // NOSONAR: non-Error rejection
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
@@ -180,7 +181,13 @@ describe("JiraResponseHandler", () => {
       it("should handle undefined error in JSON parsing", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject(undefined)),
+          json: mock(
+            () =>
+              new Promise<never>((_, reject) => {
+                // undefined rejection: tests `String(error)` when error is undefined
+                reject(); // NOSONAR: reject with undefined, not an Error
+              }),
+          ),
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
@@ -224,6 +231,18 @@ describe("JiraResponseHandler", () => {
         const result = await handler.processResponse(mockResponse);
 
         expect(result).toEqual(mockData);
+      });
+
+      it("should return empty object for 201 response with empty body", async () => {
+        const mockResponse = {
+          status: 201,
+          text: mock(() => Promise.resolve("")),
+        } as unknown as Response;
+
+        const result = await handler.processResponse(mockResponse);
+
+        expect(result).toEqual({});
+        expect(mockResponse.text).toHaveBeenCalledTimes(1);
       });
     });
 

@@ -6,7 +6,7 @@
  * being sent to JIRA API.
  */
 
-import { describe, expect, it, jest, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it, jest } from "bun:test";
 import type { HttpClient } from "@features/jira/client/http/jira.http.types";
 import { WorklogRepositoryImpl } from "@features/jira/issues/repositories/worklog.repository";
 import type { ADFDocument } from "@features/jira/shared/parsers/adf.parser";

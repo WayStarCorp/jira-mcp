@@ -20,6 +20,9 @@ yarn-error.log*
 pnpm-debug.log*
 test-results*
 
+# Local Jira probe scripts with real tenant data
+scripts/dev/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -87,6 +87,120 @@ describe("UpdateIssueHandler", () => {
         }),
       );
     });
+
+    it("should resolve custom field names and option values", async () => {
+      const mockUpdatedIssue = mockFactory.createMockIssue({
+        key: "TEST-126",
+        id: "issue-126",
+      });
+
+      const mockResolveCustomFieldsUseCase = {
+        execute: mock(() =>
+          Promise.resolve({
+            customfield_10070: { id: "10026" },
+          }),
+        ),
+      };
+
+      mockUpdateIssueUseCase.execute.mockImplementation(() =>
+        Promise.resolve(mockUpdatedIssue),
+      );
+
+      const localHandler = new UpdateIssueHandler(
+        mockUpdateIssueUseCase,
+        mockResolveCustomFieldsUseCase as never,
+      );
+
+      const result = (await localHandler.handle({
+        issueKey: "TEST-126",
+        customFields: {
+          Инициатор: "Роман",
+        },
+      })) as McpResponse<string>;
+
+      expect(result.success).toBe(true);
+      expect(mockResolveCustomFieldsUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          issueKey: "TEST-126",
+          customFields: {
+            Инициатор: "Роман",
+          },
+        }),
+      );
+      expect(mockUpdateIssueUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          issueKey: "TEST-126",
+          fields: {
+            customfield_10070: { id: "10026" },
+          },
+        }),
+      );
+    });
+
+    it("should merge customFields into the update payload", async () => {
+      const mockUpdatedIssue = mockFactory.createMockIssue({
+        key: "TEST-124",
+        id: "issue-124",
+      });
+
+      mockUpdateIssueUseCase.execute.mockImplementation(() =>
+        Promise.resolve(mockUpdatedIssue),
+      );
+
+      const result = (await handler.handle({
+        issueKey: "TEST-124",
+        summary: "Updated test issue",
+        customFields: {
+          customfield_10001: { accountId: "account-123" },
+          customfield_10002: "custom value",
+          duedate: "2026-01-01",
+          reporter: { accountId: "evil-user" },
+        },
+      })) as McpResponse<string>;
+
+      expect(result.success).toBe(true);
+      expect(mockUpdateIssueUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          issueKey: "TEST-124",
+          fields: expect.objectContaining({
+            summary: "Updated test issue",
+            customfield_10001: { accountId: "account-123" },
+            customfield_10002: "custom value",
+          }),
+        }),
+      );
+
+      const updateCall = mockUpdateIssueUseCase.execute.mock.calls[0][0];
+      expect(updateCall.fields).not.toHaveProperty("duedate");
+      expect(updateCall.fields).not.toHaveProperty("reporter");
+    });
+
+    it("should forward customFields even when no standard fields are provided", async () => {
+      const mockUpdatedIssue = mockFactory.createMockIssue({
+        key: "TEST-125",
+        id: "issue-125",
+      });
+
+      mockUpdateIssueUseCase.execute.mockImplementation(() =>
+        Promise.resolve(mockUpdatedIssue),
+      );
+
+      await handler.handle({
+        issueKey: "TEST-125",
+        customFields: {
+          customfield_10001: { accountId: "account-123" },
+        },
+      });
+
+      expect(mockUpdateIssueUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          issueKey: "TEST-125",
+          fields: {
+            customfield_10001: { accountId: "account-123" },
+          },
+        }),
+      );
+    });
   });
 
   describe("error handling", () => {
@@ -135,13 +249,6 @@ describe("UpdateIssueHandler", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("Update Failed");
     });
-
-    it("should handle constructor without use case", () => {
-      expect(() => {
-        // @ts-ignore - Intentionally creating with invalid params for test
-        new UpdateIssueHandler();
-      }).not.toThrow();
-    });
   });
 
   describe("parameter validation", () => {
@@ -170,6 +277,16 @@ describe("UpdateIssueHandler", () => {
       const result = await handler.handle({
         issueKey: "", // Empty string
         summary: "Updated summary",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Invalid issue update parameters");
+    });
+
+    it("should reject empty description", async () => {
+      const result = await handler.handle({
+        issueKey: "TEST-123",
+        description: "",
       });
 
       expect(result.success).toBe(false);

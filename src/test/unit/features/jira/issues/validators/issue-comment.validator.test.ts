@@ -7,9 +7,11 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { CommentParamsValidationError } from "@features/jira/issues/validators/errors";
 import {
+  type AddIssueCommentParams,
   type GetIssueCommentsParams,
   type IssueCommentValidator,
   IssueCommentValidatorImpl,
+  addIssueCommentSchema,
   getIssueCommentsSchema,
 } from "@features/jira/issues/validators/issue-comment.validator";
 
@@ -206,6 +208,40 @@ describe("IssueCommentValidator", () => {
       const result = getIssueCommentsSchema.safeParse(invalidData);
 
       // Assert
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("validateAddCommentParams", () => {
+    it("should validate a comment payload successfully", () => {
+      const validParams: AddIssueCommentParams = {
+        issueKey: "TEST-123",
+        comment: "Looks good to me.",
+      };
+
+      const result = validator.validateAddCommentParams(validParams);
+
+      expect(result).toEqual(validParams);
+    });
+
+    it("should reject empty comment text", () => {
+      const invalidParams = {
+        issueKey: "TEST-123",
+        comment: "",
+      };
+
+      expect(() => validator.validateAddCommentParams(invalidParams)).toThrow(
+        CommentParamsValidationError,
+      );
+    });
+  });
+
+  describe("addIssueCommentSchema", () => {
+    it("should reject missing comment field", () => {
+      const result = addIssueCommentSchema.safeParse({
+        issueKey: "TEST-123",
+      });
+
       expect(result.success).toBe(false);
     });
   });

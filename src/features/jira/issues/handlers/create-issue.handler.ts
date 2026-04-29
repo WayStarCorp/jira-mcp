@@ -14,11 +14,9 @@ import {
 import { IssueCreationFormatter } from "@features/jira/issues/formatters/issue-creation.formatter";
 import {
   type CreateIssueParams,
+  type CreateIssueUseCase,
+  type CreateIssueUseCaseRequest,
   createIssueParamsSchema,
-} from "@features/jira/issues/use-cases";
-import type {
-  CreateIssueUseCase,
-  CreateIssueUseCaseRequest,
 } from "@features/jira/issues/use-cases";
 import { IssueCreateParamsValidationError } from "@features/jira/issues/validators/errors";
 
@@ -62,11 +60,7 @@ export class CreateIssueHandler extends BaseToolHandler<
 
       // Step 2: Map parameters to use case request
       const useCaseRequest: CreateIssueUseCaseRequest = {
-        projectKey: validatedParams.projectKey,
-        summary: validatedParams.summary,
-        issueType: validatedParams.issueType,
-        description: validatedParams.description,
-        customFields: validatedParams.customFields,
+        ...validatedParams,
       };
 
       // Step 3: Execute the use case

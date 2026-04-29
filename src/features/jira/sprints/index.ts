@@ -18,7 +18,9 @@ export * from "./validators/errors/sprint.error";
 export * from "./formatters/sprint-list.formatter";
 
 // Use Cases
+export * from "./use-cases/add-issues-to-sprint.use-case";
 export * from "./use-cases/get-sprints.use-case";
 
 // Handlers
+export * from "./handlers/add-issues-to-sprint.handler";
 export * from "./handlers/get-sprints.handler";

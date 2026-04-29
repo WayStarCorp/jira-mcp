@@ -69,11 +69,15 @@ export class IssuesListFormatter implements Formatter<Issue[], string> {
       }
 
       // Show results count from metadata
-      header += `**Results**: ${metadata.totalResults} ${metadata.totalResults === metadata.maxResults ? `(max ${metadata.maxResults})` : ""}\n\n`;
+      const maxResultsHint =
+        metadata.totalResults === metadata.maxResults
+          ? ` (max ${metadata.maxResults})`
+          : "";
+      header += `**Results**: ${metadata.totalResults}${maxResultsHint}\n\n`;
     } else if (issues) {
       // When no metadata but we have issues, show the count from the array length
       const count = issues.length;
-      header += `**Found**: ${count} issue${count !== 1 ? "s" : ""}\n\n`;
+      header += `**Found**: ${count} issue${count === 1 ? "" : "s"}\n\n`;
     }
 
     header += "---\n\n";
@@ -206,13 +210,11 @@ export class IssuesListFormatter implements Formatter<Issue[], string> {
     const parts: string[] = [];
 
     if (created) {
-      const createdDate = new Date(created);
-      parts.push(`Created: ${createdDate.toLocaleDateString()}`);
+      parts.push(`Created: ${this.formatDate(created)}`);
     }
 
     if (updated) {
-      const updatedDate = new Date(updated);
-      parts.push(`Updated: ${updatedDate.toLocaleDateString()}`);
+      parts.push(`Updated: ${this.formatDate(updated)}`);
     }
 
     return parts.join(" | ");
@@ -256,5 +258,18 @@ export class IssuesListFormatter implements Formatter<Issue[], string> {
     message += "Try adjusting your search parameters or JQL query.\n";
 
     return message;
+  }
+
+  /**
+   * Format a date string in a deterministic locale
+   */
+  private formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
   }
 }

@@ -178,6 +178,33 @@ describe("JiraUrlBuilder", () => {
     });
   });
 
+  describe("Agile REST (rest/agile/1.0)", () => {
+    it("should expose agile base URL", () => {
+      const builder = new JiraUrlBuilder("https://example.atlassian.net/");
+      expect(builder.getAgileBaseUrl()).toBe(
+        "https://example.atlassian.net/rest/agile/1.0",
+      );
+    });
+
+    it("should build board endpoint under agile API", () => {
+      const builder = new JiraUrlBuilder("https://example.atlassian.net");
+      const url = builder.buildUrl("board/12", undefined, "agile");
+      expect(url).toBe("https://example.atlassian.net/rest/agile/1.0/board/12");
+    });
+
+    it("should build sprint issue POST path under agile API", () => {
+      const builder = new JiraUrlBuilder("https://example.atlassian.net");
+      const url = builder.buildUrl(
+        "sprint/55/issue",
+        { maxResults: 1 },
+        "agile",
+      );
+      expect(url).toBe(
+        "https://example.atlassian.net/rest/agile/1.0/sprint/55/issue?maxResults=1",
+      );
+    });
+  });
+
   describe("different host URL formats", () => {
     it("should handle localhost URLs", () => {
       const builder = new JiraUrlBuilder("http://localhost:8080");

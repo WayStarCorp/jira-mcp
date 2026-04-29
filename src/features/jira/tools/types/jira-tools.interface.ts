@@ -15,9 +15,15 @@ export interface JiraTools {
   // Issue management tools
   jira_get_issue: ToolHandler;
   jira_get_issue_comments: ToolHandler;
+  jira_add_issue_comment: ToolHandler;
   jira_get_assigned_issues: ToolHandler;
+  jira_get_issue_transitions: ToolHandler;
+  jira_get_issue_custom_field_metadata: ToolHandler;
   jira_create_issue: ToolHandler;
+  jira_transition_issue: ToolHandler;
   jira_update_issue: ToolHandler;
+  jira_get_issue_link_types: ToolHandler;
+  jira_link_issues: ToolHandler;
   jira_search_issues: ToolHandler;
 
   // Project management tools
@@ -28,6 +34,7 @@ export interface JiraTools {
 
   // Sprint management tools
   jira_get_sprints: ToolHandler;
+  jira_add_issues_to_sprint: ToolHandler;
 
   // Worklog management tools
   jira_add_worklog: ToolHandler;
@@ -37,6 +44,9 @@ export interface JiraTools {
 
   // User management tools
   jira_get_current_user: ToolHandler;
+  jira_search_users: ToolHandler;
+  jira_get_assignable_users: ToolHandler;
+  jira_assign_issue: ToolHandler;
 }
 
 /**
@@ -50,9 +60,15 @@ export interface JiraToolCategories {
     JiraTools,
     | "jira_get_issue"
     | "jira_get_issue_comments"
+    | "jira_add_issue_comment"
     | "jira_get_assigned_issues"
+    | "jira_get_issue_transitions"
+    | "jira_get_issue_custom_field_metadata"
     | "jira_create_issue"
+    | "jira_transition_issue"
     | "jira_update_issue"
+    | "jira_get_issue_link_types"
+    | "jira_link_issues"
     | "jira_search_issues"
   >;
 
@@ -63,7 +79,7 @@ export interface JiraToolCategories {
   boards: Pick<JiraTools, "jira_get_boards">;
 
   /** Sprint-related tools */
-  sprints: Pick<JiraTools, "jira_get_sprints">;
+  sprints: Pick<JiraTools, "jira_get_sprints" | "jira_add_issues_to_sprint">;
 
   /** Worklog-related tools */
   worklogs: Pick<
@@ -75,7 +91,13 @@ export interface JiraToolCategories {
   >;
 
   /** User-related tools */
-  users: Pick<JiraTools, "jira_get_current_user">;
+  users: Pick<
+    JiraTools,
+    | "jira_get_current_user"
+    | "jira_search_users"
+    | "jira_get_assignable_users"
+    | "jira_assign_issue"
+  >;
 }
 
 /**
@@ -87,9 +109,15 @@ export const JIRA_TOOL_NAMES = {
   ISSUES: [
     "jira_get_issue",
     "jira_get_issue_comments",
+    "jira_add_issue_comment",
     "jira_get_assigned_issues",
+    "jira_get_issue_transitions",
+    "jira_get_issue_custom_field_metadata",
     "jira_create_issue",
+    "jira_transition_issue",
     "jira_update_issue",
+    "jira_get_issue_link_types",
+    "jira_link_issues",
     "jira_search_issues",
   ] as const,
 
@@ -97,7 +125,7 @@ export const JIRA_TOOL_NAMES = {
 
   BOARDS: ["jira_get_boards"] as const,
 
-  SPRINTS: ["jira_get_sprints"] as const,
+  SPRINTS: ["jira_get_sprints", "jira_add_issues_to_sprint"] as const,
 
   WORKLOGS: [
     "jira_add_worklog",
@@ -106,7 +134,12 @@ export const JIRA_TOOL_NAMES = {
     "jira_delete_worklog",
   ] as const,
 
-  USERS: ["jira_get_current_user"] as const,
+  USERS: [
+    "jira_get_current_user",
+    "jira_search_users",
+    "jira_get_assignable_users",
+    "jira_assign_issue",
+  ] as const,
 } as const;
 
 /**

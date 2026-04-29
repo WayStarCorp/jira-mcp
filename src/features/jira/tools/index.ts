@@ -5,11 +5,11 @@
  * Provides a simplified API for creating and registering JIRA tools
  */
 
+import { logger } from "@core/logging";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { JiraConfig } from "../client/config";
 import { createJiraDependencies, createJiraTools } from "./factories";
 import { getJiraToolStatistics, registerJiraTools } from "./registry";
-import { logger } from "@core/logging";
 
 // Export all types
 export type * from "./types";
@@ -40,8 +40,17 @@ export function createJiraToolsWithDI(config: JiraConfig) {
   logger.info("Creating JIRA tools with dependency injection", {
     prefix: "JIRA",
   });
-  // log the config
-  logger.info("JIRA config", { config, prefix: "JIRA" });
+  const jiraConfig = config.get();
+  logger.info("JIRA config", {
+    config: {
+      hostUrl: jiraConfig.hostUrl,
+      username: jiraConfig.username,
+      apiToken: jiraConfig.apiToken ? "[REDACTED]" : "",
+      maxRetries: jiraConfig.maxRetries,
+      timeout: jiraConfig.timeout,
+    },
+    prefix: "JIRA",
+  });
   const dependencies = createJiraDependencies(config);
   return createJiraTools(dependencies);
 }

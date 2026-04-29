@@ -127,8 +127,8 @@ describe("GetAssignedIssuesHandler", () => {
       const issueData = result.data as string;
       expect((issueData.match(/## 🎫/g) || []).length).toBe(1);
 
-      // Date formatting is done by the formatter, which might vary by locale
-      expect(result.data).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+      // Date formatting is done by the formatter using explicit en-US month names
+      expect(result.data).toContain("Jan 1, 2025");
     });
   });
 
@@ -186,13 +186,9 @@ describe("GetAssignedIssuesHandler", () => {
 
   describe("edge cases", () => {
     it("should handle constructor without use case", () => {
-      expect(() => {
-        // For test purposes, we're checking that the constructor doesn't throw
-        // since the implementation might allow undefined use case and handle it internally
-        // @ts-expect-error Testing runtime error with undefined use case
-        new GetAssignedIssuesHandler(undefined);
-        // Just verify that the test passes; we're not actually asserting a throw anymore
-      }).not.toThrow();
+      // @ts-expect-error Intentionally undefined use case — constructor must not throw
+      const instance = new GetAssignedIssuesHandler(undefined);
+      expect(instance).toBeInstanceOf(GetAssignedIssuesHandler);
     });
   });
 
@@ -255,8 +251,8 @@ describe("GetAssignedIssuesHandler", () => {
       const result = (await handler.handle({})) as McpResponse<string>;
 
       expect(result.success).toBe(true);
-      // Date should be formatted as locale date string
-      expect(result.data).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+      // Date should be formatted as an explicit en-US month-name string
+      expect(result.data).toContain("Jan 1, 2025");
     });
 
     it("should escape markdown special characters in issue data", async () => {

@@ -91,14 +91,41 @@ describe("CreateIssueHandler", () => {
         description: "Detailed description",
         priority: "High",
         labels: ["urgent", "frontend"],
-        assignee: "john.doe",
+        assignee: "account-123",
         components: ["Frontend", "API"],
+        fixVersions: ["1.0.0"],
+        parentIssueKey: "PROJ-1",
+        timeEstimate: "4h",
+        environment: "Production",
+        storyPoints: 5,
+        customFields: {
+          customfield_12345: "custom value",
+        },
       })) as McpResponse<string>;
 
       expect(result.success).toBe(true);
       expect(result.data).toContain("PROJ-456");
       expect(result.data).toContain("Complex issue with all fields");
-      expect(mockCreateIssueUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(mockCreateIssueUseCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectKey: "PROJ",
+          summary: "Complex issue with all fields",
+          issueType: "Bug",
+          description: "Detailed description",
+          priority: "High",
+          labels: ["urgent", "frontend"],
+          assignee: "account-123",
+          components: ["Frontend", "API"],
+          fixVersions: ["1.0.0"],
+          parentIssueKey: "PROJ-1",
+          timeEstimate: "4h",
+          environment: "Production",
+          storyPoints: 5,
+          customFields: {
+            customfield_12345: "custom value",
+          },
+        }),
+      );
     });
 
     it("should apply bug template correctly", async () => {
@@ -313,10 +340,9 @@ describe("CreateIssueHandler", () => {
     });
 
     it("should handle constructor without repository", () => {
-      expect(() => {
-        // @ts-ignore - Intentionally passing null for test purposes
-        new CreateIssueHandler(undefined);
-      }).not.toThrow();
+      // @ts-expect-error — intentionally undefined to assert constructor does not throw
+      const instance = new CreateIssueHandler(undefined);
+      expect(instance).toBeInstanceOf(CreateIssueHandler);
     });
   });
 

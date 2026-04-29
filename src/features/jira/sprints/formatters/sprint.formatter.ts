@@ -21,11 +21,8 @@ export class SprintFormatter implements Formatter<Sprint, string> {
   format(sprint: Sprint): string {
     const sections: string[] = [];
 
-    // Header with sprint name and ID
-    sections.push(this.formatHeader(sprint));
-
-    // Main details
-    sections.push(this.formatDetails(sprint));
+    // Header with sprint name and ID, then main details
+    sections.push(this.formatHeader(sprint), this.formatDetails(sprint));
 
     // Timeline and dates
     const timeline = this.formatTimeline(sprint);
@@ -144,18 +141,20 @@ export class SprintFormatter implements Formatter<Sprint, string> {
     const analytics: string[] = ["## 📊 Sprint Status"];
 
     if (sprint.state === SprintState.ACTIVE) {
-      analytics.push("🔄 **Status:** Sprint is currently in progress");
       analytics.push(
+        "🔄 **Status:** Sprint is currently in progress",
         "ℹ️ Use the Sprint Report link below to view real-time metrics",
       );
     } else if (sprint.state === SprintState.CLOSED) {
-      analytics.push("✅ **Status:** Sprint has been completed");
       analytics.push(
+        "✅ **Status:** Sprint has been completed",
         "ℹ️ View the Sprint Report for complete metrics and outcomes",
       );
     } else if (sprint.state === SprintState.FUTURE) {
-      analytics.push("⏳ **Status:** Sprint is planned for the future");
-      analytics.push("ℹ️ Sprint details may be updated before it begins");
+      analytics.push(
+        "⏳ **Status:** Sprint is planned for the future",
+        "ℹ️ Sprint details may be updated before it begins",
+      );
     }
 
     return analytics.join("\n");
@@ -168,14 +167,14 @@ export class SprintFormatter implements Formatter<Sprint, string> {
     const actions: string[] = ["## 🚀 Quick Actions"];
 
     if (sprint.self) {
-      actions.push(`• [View Sprint in JIRA](${sprint.self})`);
-      actions.push(`• [Sprint Report](${sprint.self}/report)`);
+      actions.push(
+        `• [View Sprint in JIRA](${sprint.self})`,
+        `• [Sprint Report](${sprint.self}/report)`,
+      );
 
       if (sprint.originBoardId) {
         actions.push(
           `• [View Board](${sprint.self.replace(/\/sprint\/\d+/, "")})`,
-        );
-        actions.push(
           `• Get other sprints: \`jira_get_sprints boardId=${sprint.originBoardId}\``,
         );
       }
@@ -219,6 +218,7 @@ export class SprintFormatter implements Formatter<Sprint, string> {
       year: "numeric",
       month: "short",
       day: "numeric",
+      timeZone: "UTC",
     });
   }
 }

@@ -135,10 +135,7 @@ export const jiraApiMocks = {
     const searchResult =
       scenarioData?.data.searchResults || mockFactory.createMockSearchResult();
 
-    return mockHttp.mockJiraApiSuccess(
-      "/rest/api/3/search/jql",
-      searchResult,
-    );
+    return mockHttp.mockJiraApiSuccess("/rest/api/3/search/jql", searchResult);
   },
 
   /**

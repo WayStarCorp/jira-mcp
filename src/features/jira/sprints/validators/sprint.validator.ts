@@ -5,6 +5,7 @@
  */
 
 import { formatZodError } from "@core/utils/validation";
+import { issueKeySchema } from "@features/jira/issues/validators/issue-params.validator";
 import { z } from "zod";
 import { SprintState } from "../models";
 import {
@@ -44,6 +45,35 @@ export const getSprintParamsSchema = z.object({
 export type GetSprintParams = z.infer<typeof getSprintParamsSchema>;
 
 /**
+ * Raw fields for add-to-sprint (MCP tool shape uses this; XOR validated separately).
+ */
+export const addIssuesToSprintFieldsSchema = z.object({
+  issueKeys: z.array(issueKeySchema).min(1),
+  sprintId: z.number().int().min(1).optional(),
+  boardId: z.number().int().min(1).optional(),
+});
+
+/**
+ * Add existing issues to a sprint: either explicit sprintId **or** boardId (active sprint).
+ */
+export const addIssuesToSprintParamsSchema =
+  addIssuesToSprintFieldsSchema.superRefine((data, ctx) => {
+    const hasSprint = data.sprintId !== undefined;
+    const hasBoard = data.boardId !== undefined;
+    if (hasSprint === hasBoard) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Provide exactly one of sprintId (explicit sprint) or boardId (use active sprint on that board).",
+      });
+    }
+  });
+
+export type AddIssuesToSprintParams = z.infer<
+  typeof addIssuesToSprintParamsSchema
+>;
+
+/**
  * Interface for sprint validator
  */
 export interface SprintValidator {
@@ -62,6 +92,13 @@ export interface SprintValidator {
    * @returns Validated parameters
    */
   validateGetSprintParams(params: GetSprintParams): GetSprintParams;
+
+  /**
+   * Validate add issues to sprint parameters
+   */
+  validateAddIssuesToSprintParams(
+    params: AddIssuesToSprintParams,
+  ): AddIssuesToSprintParams;
 }
 
 /**
@@ -101,6 +138,24 @@ export class SprintValidatorImpl implements SprintValidator {
     if (!result.success) {
       const errorMessage = `Invalid sprint ID: ${formatZodError(result.error)}`;
       throw new SprintIdValidationError(errorMessage, { params });
+    }
+
+    return result.data;
+  }
+
+  /**
+   * Validate parameters for adding issues to a sprint
+   */
+  public validateAddIssuesToSprintParams(
+    params: AddIssuesToSprintParams,
+  ): AddIssuesToSprintParams {
+    const result = addIssuesToSprintParamsSchema.safeParse(params);
+
+    if (!result.success) {
+      const errorMessage = `Invalid add-to-sprint parameters: ${formatZodError(
+        result.error,
+      )}`;
+      throw new SprintParamsValidationError(errorMessage, { params });
     }
 
     return result.data;

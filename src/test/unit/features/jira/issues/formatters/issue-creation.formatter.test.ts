@@ -206,7 +206,7 @@ describe("IssueCreationFormatter", () => {
         key: "STORY-789",
         fields: {
           summary: "Issue with story points",
-          customfield_10004: 8, // Story points
+          customfield_10016: 8, // Story points
         },
       });
 
@@ -214,6 +214,21 @@ describe("IssueCreationFormatter", () => {
 
       expect(result).toContain("📝 **Additional Details:**");
       expect(result).toContain("**Story Points:** 8");
+    });
+
+    test("should format zero story points correctly", async () => {
+      const issue = mockFactory.createMockIssue({
+        key: "STORY-790",
+        fields: {
+          summary: "Issue with zero story points",
+          customfield_10016: 0,
+        },
+      });
+
+      const result = formatter.format(issue);
+
+      expect(result).toContain("📝 **Additional Details:**");
+      expect(result).toContain("**Story Points:** 0");
     });
 
     test("should handle components with missing names", async () => {

@@ -19,24 +19,27 @@ export const updateIssueParamsSchema = z.object({
 
   // Fields to update
   summary: z.string().min(1).max(255).optional(),
-  description: z.string().max(32767).optional(),
+  description: z.string().trim().min(1).max(32767).optional(),
   priority: z.enum(["Highest", "High", "Medium", "Low", "Lowest"]).optional(),
   assignee: z.string().min(1).max(255).optional(),
 
   // Array operations
   labels: z
     .object({
-      operation: z.enum(["set", "add", "remove"]),
+      operation: z.enum(["set"]),
       values: z.array(z.string().min(1).max(255)),
     })
     .optional(),
 
   components: z
     .object({
-      operation: z.enum(["set", "add", "remove"]),
+      operation: z.enum(["set"]),
       values: z.array(z.string().min(1).max(255)),
     })
     .optional(),
+
+  // Custom fields for Jira-specific updates
+  customFields: z.record(z.string(), z.unknown()).optional(),
 
   // Transition
   transition: z
@@ -185,14 +188,8 @@ export class UpdateIssueUseCaseImpl implements UpdateIssueUseCase {
     });
 
     // Extract project key with proper type checking
-    if (!issue.fields || !issue.fields.project) {
-      throw new Error(
-        `Unable to determine project for issue '${request.issueKey}'`,
-      );
-    }
-
-    const project = issue.fields.project as { key: string };
-    const projectKey = project.key;
+    const projectKey = (issue.fields?.project as { key?: string } | undefined)
+      ?.key;
 
     if (!projectKey) {
       throw new Error(

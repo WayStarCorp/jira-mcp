@@ -5,9 +5,13 @@
  */
 export { IssueFormatter } from "./issue.formatter";
 export { CommentsFormatter } from "./comments.formatter";
+export { CustomFieldMetadataFormatter } from "./custom-field.formatter";
 export { IssueCreateFormatter } from "./issue-create.formatter";
 export { IssueUpdateFormatter } from "./issue-update.formatter";
-export { IssueTransitionFormatter } from "./transition.formatter";
+export {
+  TransitionListFormatter,
+  TransitionResultFormatter,
+} from "./transition.formatter";
 export {
   WorklogFormatter,
   WorklogEntryFormatter,

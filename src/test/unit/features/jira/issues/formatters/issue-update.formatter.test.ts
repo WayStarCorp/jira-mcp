@@ -67,6 +67,7 @@ describe("IssueUpdateFormatter", () => {
       expect(result).toContain("**Labels:** bug, urgent, updated");
       expect(result).toContain("**Components:** Frontend, API");
       expect(result).toContain("**Fix Versions:** v1.2.0");
+      expect(result).toContain("Jan 16, 2024");
       expect(result).toContain("[View Issue]");
       expect(result).toContain("[Edit Issue]");
       expect(result).toContain("🚀 **Next Actions:**");
@@ -92,6 +93,7 @@ describe("IssueUpdateFormatter", () => {
       expect(result).toContain("**Status**: To Do");
       expect(result).toContain("**Assignee**: Jane Assignee");
       expect(result).toContain("**Priority**: Medium");
+      expect(result).toContain("Jan 15, 2024");
       expect(result).toContain("[View Issue]");
       expect(result).toContain("✨ Issue update completed successfully!");
     });
@@ -306,6 +308,24 @@ describe("IssueUpdateFormatter", () => {
       expect(result).toContain("Remaining: 4h");
     });
 
+    test("should handle zero time tracking fields", () => {
+      const issue = testDataBuilder.issueWithStatus("To Do", "blue");
+      issue.key = "TEST-1213";
+      issue.fields = {
+        ...issue.fields,
+        summary: "Test issue with zero time tracking",
+        timeoriginalestimate: 0,
+        timeestimate: 0,
+        updated: "2024-01-15T10:30:00.000Z",
+      };
+
+      const result = formatter.format(issue);
+
+      expect(result).toContain("Time Tracking:");
+      expect(result).toContain("Original: 0h");
+      expect(result).toContain("Remaining: 0h");
+    });
+
     test("should handle missing time tracking fields", () => {
       const issue = testDataBuilder.issueWithStatus("To Do", "blue");
       issue.key = "TEST-1313";
@@ -328,7 +348,7 @@ describe("IssueUpdateFormatter", () => {
       issue.fields = {
         ...issue.fields,
         summary: "Test issue with story points",
-        customfield_10004: 5,
+        customfield_10016: 5,
         updated: "2024-01-15T10:30:00.000Z",
       };
 
@@ -337,13 +357,28 @@ describe("IssueUpdateFormatter", () => {
       expect(result).toContain("Story Points: 5");
     });
 
+    test("should handle zero story points custom field", () => {
+      const issue = testDataBuilder.issueWithStatus("To Do", "blue");
+      issue.key = "TEST-1415";
+      issue.fields = {
+        ...issue.fields,
+        summary: "Test issue with zero story points",
+        customfield_10016: 0,
+        updated: "2024-01-15T10:30:00.000Z",
+      };
+
+      const result = formatter.format(issue);
+
+      expect(result).toContain("Story Points: 0");
+    });
+
     test("should handle missing story points", () => {
       const issue = testDataBuilder.issueWithStatus("To Do", "blue");
       issue.key = "TEST-1515";
       issue.fields = {
         ...issue.fields,
         summary: "Test issue",
-        customfield_10004: undefined,
+        customfield_10016: undefined,
         updated: "2024-01-15T10:30:00.000Z",
       };
 
@@ -397,7 +432,7 @@ describe("IssueUpdateFormatter", () => {
       const result = formatter.format(issue);
 
       expect(result).toContain("**Last Updated:**");
-      expect(result).toContain("1/15/2024"); // Should format the date
+      expect(result).toContain("Jan 15, 2024"); // Should format the date
     });
   });
 

@@ -19,8 +19,10 @@ export class SprintEntryBuilder {
     const sections: string[] = [];
 
     // Sprint header
-    sections.push(`### ${index + 1}. ${this.sprint.name}`);
-    sections.push(this.buildStateInfo());
+    sections.push(
+      `### ${index + 1}. ${this.sprint.name}`,
+      this.buildStateInfo(),
+    );
 
     // Dates and timeline
     const dateInfo = this.buildDateInfo();
@@ -115,8 +117,10 @@ export class SprintEntryBuilder {
 
     if (this.sprint.self !== undefined) {
       const sprintUrl = this.sprint.self || "";
-      actions.push(`[View Sprint](${sprintUrl})`);
-      actions.push(`[Sprint Report](${sprintUrl}/report)`);
+      actions.push(
+        `[View Sprint](${sprintUrl})`,
+        `[Sprint Report](${sprintUrl}/report)`,
+      );
 
       if (!!this.sprint.originBoardId && this.sprint.self) {
         actions.push(
@@ -224,6 +228,7 @@ export class SprintEntryBuilder {
       year: "numeric",
       month: "short",
       day: "numeric",
+      timeZone: "UTC",
     });
   }
 }

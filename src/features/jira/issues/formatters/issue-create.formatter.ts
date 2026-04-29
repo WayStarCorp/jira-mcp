@@ -9,11 +9,7 @@ import { parseADF } from "@features/jira/shared/parsers/adf.parser";
  * Builder class for formatting issue creation request sections
  */
 class IssueCreateSectionBuilder {
-  private sections: string[] = [];
-
-  constructor() {
-    this.sections = [];
-  }
+  private readonly sections: string[] = [];
 
   /**
    * Add header section
@@ -27,15 +23,16 @@ class IssueCreateSectionBuilder {
    * Add basic required information
    */
   addBasicInformation(request: CreateIssueRequest): this {
-    this.sections.push(`**Project:** ${request.fields.project.key}`);
-    this.sections.push(`**Issue Type:** ${request.fields.issuetype.name}`);
-    this.sections.push(`**Summary:** ${request.fields.summary}`);
+    this.sections.push(
+      `**Project:** ${request.fields.project.key}`,
+      `**Issue Type:** ${request.fields.issuetype.name}`,
+      `**Summary:** ${request.fields.summary}`,
+    );
 
     // Description (handle ADF format)
     if (request.fields.description) {
-      this.sections.push("**Description:**");
       const descriptionText = parseADF(request.fields.description);
-      this.sections.push(descriptionText);
+      this.sections.push("**Description:**", descriptionText);
     }
     return this;
   }
@@ -53,9 +50,8 @@ class IssueCreateSectionBuilder {
     }
 
     if (request.fields.environment) {
-      this.sections.push("**Environment:**");
       const environmentText = parseADF(request.fields.environment);
-      this.sections.push(environmentText);
+      this.sections.push("**Environment:**", environmentText);
     }
     return this;
   }
@@ -98,10 +94,9 @@ class IssueCreateSectionBuilder {
       );
     }
 
-    if (request.fields.customfield_10016) {
-      this.sections.push(
-        `**Story Points:** ${request.fields.customfield_10016}`,
-      );
+    const storyPoints = request.fields.customfield_10016;
+    if (typeof storyPoints === "number" || typeof storyPoints === "string") {
+      this.sections.push(`**Story Points:** ${storyPoints}`);
     }
     return this;
   }
