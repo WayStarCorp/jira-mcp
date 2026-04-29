@@ -66,9 +66,16 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
       configs: createIssueToolsConfig({
         jira_get_issue: tools.jira_get_issue,
         jira_get_issue_comments: tools.jira_get_issue_comments,
+        jira_add_issue_comment: tools.jira_add_issue_comment,
         jira_get_assigned_issues: tools.jira_get_assigned_issues,
+        jira_get_issue_transitions: tools.jira_get_issue_transitions,
+        jira_get_issue_custom_field_metadata:
+          tools.jira_get_issue_custom_field_metadata,
         jira_create_issue: tools.jira_create_issue,
+        jira_transition_issue: tools.jira_transition_issue,
         jira_update_issue: tools.jira_update_issue,
+        jira_get_issue_link_types: tools.jira_get_issue_link_types,
+        jira_link_issues: tools.jira_link_issues,
         jira_search_issues: tools.jira_search_issues,
       }),
     },
@@ -88,6 +95,7 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
       groupName: "sprints",
       configs: createSprintToolsConfig({
         jira_get_sprints: tools.jira_get_sprints,
+        jira_add_issues_to_sprint: tools.jira_add_issues_to_sprint,
       }),
     },
     {
@@ -103,6 +111,9 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
       groupName: "users",
       configs: createUserToolsConfig({
         jira_get_current_user: tools.jira_get_current_user,
+        jira_search_users: tools.jira_search_users,
+        jira_get_assignable_users: tools.jira_get_assignable_users,
+        jira_assign_issue: tools.jira_assign_issue,
       }),
     },
   ];

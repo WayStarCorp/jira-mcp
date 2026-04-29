@@ -6,10 +6,14 @@
 
 // Export validation schemas and types
 export {
+  addIssuesToSprintFieldsSchema,
+  addIssuesToSprintParamsSchema,
   getSprintsParamsSchema,
   getSprintParamsSchema,
 } from "./sprint.validator";
 export type {
+  AddIssuesToSprintParams,
+  GetSprintsParamsInput,
   GetSprintsParams,
   GetSprintParams,
   SprintValidator,

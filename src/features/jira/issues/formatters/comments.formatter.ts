@@ -38,12 +38,12 @@ export class CommentsFormatter
     let markdown = `# 💬 Comments for ${context.issueKey}\n\n`;
 
     // Add summary line with total and latest info
-    const latestComment = comments[comments.length - 1];
+    const latestComment = comments.at(-1);
     const latestDate = latestComment
       ? this.formatDate(latestComment.created)
       : "";
 
-    markdown += `**Total:** ${context.totalComments} comment${context.totalComments !== 1 ? "s" : ""}`;
+    markdown += `**Total:** ${context.totalComments} comment${context.totalComments === 1 ? "" : "s"}`;
     if (context.maxDisplayed && context.maxDisplayed < context.totalComments) {
       markdown += ` | **Showing:** ${context.maxDisplayed}`;
     }
@@ -65,7 +65,7 @@ export class CommentsFormatter
     // Add navigation help if there are more comments than displayed
     if (context.maxDisplayed && context.maxDisplayed < context.totalComments) {
       const remainingComments = context.totalComments - context.maxDisplayed;
-      markdown += `\n\n**Navigation:** Use \`get_issue_comments ${context.issueKey} maxComments:${context.maxDisplayed + 10}\` to see ${remainingComments} more comment${remainingComments !== 1 ? "s" : ""}.`;
+      markdown += `\n\n**Navigation:** Use \`get_issue_comments ${context.issueKey} maxComments:${context.maxDisplayed + 10}\` to see ${remainingComments} more comment${remainingComments === 1 ? "" : "s"}.`;
     }
 
     return markdown;
@@ -138,16 +138,42 @@ export class CommentsFormatter
   private formatDate(dateString: string): string {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
+        timeZone: "UTC",
       });
     } catch {
       return dateString;
     }
+  }
+}
+
+/**
+ * Formats a newly added comment response.
+ */
+export class CommentAddedFormatter implements Formatter<Comment, string> {
+  format(comment: Comment): string {
+    const author = comment.author?.displayName || "Unknown User";
+    const created = comment.created
+      ? new Date(comment.created).toISOString()
+      : "";
+    const body = comment.body ? parseADF(comment.body).trim() : "";
+
+    return [
+      "# Comment Added",
+      "",
+      `**Comment ID:** ${comment.id}`,
+      `**Author:** ${author}`,
+      created ? `**Created:** ${created}` : undefined,
+      "",
+      body || "_No content_",
+    ]
+      .filter((line): line is string => line !== undefined)
+      .join("\n");
   }
 }

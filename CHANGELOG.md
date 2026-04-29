@@ -7,11 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned
+## [0.6.0] - 2026-04-29
 
-- Additional JIRA worklog management features
-- Enhanced performance optimizations
-- Advanced JIRA automation workflows
+### 🆕 New Tools — v0.6.0
+
+- **💬 `jira_add_issue_comment`**: Add a public comment to any issue. Automatically converts plain text to ADF format required by the Jira API.
+- **🔄 `jira_get_issue_transitions`**: List all available workflow transitions for an issue with their IDs and target statuses.
+- **🔄 `jira_transition_issue`**: Apply a workflow transition by `transitionId` or by `statusName` (fuzzy matched). Supports extra transition-screen fields.
+- **🔗 `jira_get_issue_link_types`**: Discover all available link types (`Blocks`, `Relates to`, `Duplicates`, etc.) with inward/outward direction labels.
+- **🔗 `jira_link_issues`**: Create a typed directional link between two issues. Validates self-link attempts.
+- **👤 `jira_search_users`**: Search the entire Jira user directory by name or email fragment.
+- **👤 `jira_get_assignable_users`**: List users eligible for assignment to a specific issue, with optional name filter.
+- **👤 `jira_assign_issue`**: Assign an issue. Accepts `accountId` (direct) **or** `query` (resolved via assignable user search — must be unambiguous).
+- **🏃 `jira_add_issues_to_sprint`**: Add one or more issues to a sprint. Provide either `sprintId` (explicit) or `boardId` (uses the board's current active sprint).
+- **🔧 `jira_get_issue_custom_field_metadata`**: Inspect custom field IDs, types, allowed values and required operations for an issue before calling `jira_update_issue`.
+
+### 🧪 Testing & Quality — v0.6.0
+
+- 900+ unit tests covering all new handlers, use cases, repositories, validators, and formatters
+- Test coverage extended for sprint repositories, board repositories, issue-link and transition flows
+
+### 🔧 Technical Improvements — v0.6.0
+
+- All new tools follow the established handler → use-case → repository layered pattern
+- Exhaustive error classification with actionable human-readable suggestions in every handler
+- `jira_transition_issue` supports both exact ID and fuzzy status-name matching
+- `jira_assign_issue` fails fast when a query resolves to 0 or 2+ users, preventing accidental assignments
+
+### ⚠️ Breaking Changes — v0.6.0
+
+- `jira_create_issue.description` now requires a non-empty value after trim
+- `GetSprintsOptions.state` is now narrowed to `SprintState`
+- `GetSprintsOptions.boardId` is optional
 
 ## [0.5.4-waystar.1] - 2026-02-06
 
@@ -21,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.4] - 2025-01-18
 
-### 🐛 Critical Bug Fixes
+### 🐛 Critical Bug Fixes — 0.5.4
 
 - **🚨 Node.js Compatibility Fixed**: Resolved critical syntax error preventing package execution on Node.js environments
   - **Issue**: TypeScript enum compilation generated ES2021 `||=` operator causing `SyntaxError: missing ) after argument list`
@@ -30,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Affected**: `SprintState` enum in sprint models
   - **Benefits**: Better tree-shaking, improved bundler compatibility, no breaking changes
 
-### 🔧 Technical Improvements
+### 🔧 Technical Improvements — 0.5.4
 
 - **TypeScript Configuration**: Updated target from ESNext to ES2020 for better compatibility
 - **Code Quality**: Improved enum patterns using const assertions for better performance
@@ -44,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.3] - 2025-06-05
 
-### 🐛 Critical Bug Fixes
+### 🐛 Critical Bug Fixes — 0.5.3
 
 - **🚨 JIRA Worklog Description Format Fixed**: Resolved critical bug where worklog creation failed when descriptions were provided
   - **Issue**: JIRA API requires worklog comments to be in ADF (Atlassian Document Format) instead of plain strings
@@ -53,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Impact**: Users can now successfully add worklog entries with descriptions/comments
   - **Location**: `src/features/jira/issues/repositories/worklog.repository.ts`
 
-### 🔧 Technical Details
+### 🔧 Technical Details — 0.5.3
 
 - **Root Cause**: JIRA worklog API expects comments in ADF format, not plain text strings
 - **Solution**: Integrated existing ADF parser to convert string comments to proper ADF document structure
@@ -70,7 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.2] - 2025-06-05
 
-### 🐛 Critical Bug Fixes
+### 🐛 Critical Bug Fixes — 0.5.2
 
 - **🚨 JIRA Permission Validation Fixed**: Resolved critical bug where MCP-JIRA incorrectly reported permission failures
   - **Issue**: Tool was using wrong JIRA REST API endpoint `/rest/api/3/user/permission/search` for permission checking
@@ -97,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.1] - 2025-06-05
 
-### 🐛 Critical Bug Fixes
+### 🐛 Critical Bug Fixes — 0.5.1
 
 - **🚨 JIRA Projects API Pagination Fixed**: Resolved `projects.map is not a function` error
   - **Issue**: JIRA `/project/search` API returns paginated responses with `{values: [...]}` structure
@@ -106,7 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Impact**: Users can now successfully use `jira_get_projects` and `jira_get_projects searchQuery="..."` commands
   - **Location**: `src/features/jira/projects/repositories/project.repository.ts`
 
-### 🔧 Technical Details
+### 🔧 Technical Details — 0.5.1
 
 - **Root Cause**: JIRA API pagination structure mismatch in projects repository
 - **Solution**: Added `PaginatedResponse<T>` and `ProjectSearchResponse` interfaces with proper value extraction
@@ -114,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Testing**: Enhanced mock factories and repository test coverage
 - **Compatibility**: Fully backward compatible with no breaking changes
 
-### 📋 Release Process
+### 📋 Release Process — 0.5.1
 
 - **Type**: Patch release (0.5.0 → 0.5.1)
 - **Priority**: High - resolves user-blocking issues
@@ -123,7 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-06-05
 
-### 🆕 New Tools
+### 🆕 New Tools — 0.5.0
 
 - **📝 Worklog Management**: Complete worklog functionality for time tracking
   - `jira_add_worklog`: Add time entries to issues with comments and date specification
@@ -146,7 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.1] - 2025-06-04
 
-### 🐛 Critical Bug Fixes
+### 🐛 Critical Bug Fixes — 0.4.1
 
 - **🚨 JIRA Issue Creation Fixed**: Resolved critical bug preventing JIRA issue creation
   - **Issue**: JIRA Cloud API now requires `permissions` query parameter for `mypermissions` endpoint
@@ -155,14 +182,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Impact**: Users can now successfully create JIRA issues through MCP integration
   - **Location**: `src/features/jira/api/jira.client.impl.ts` - `validateProject` method
 
-### 🔧 Technical Details
+### 🔧 Technical Details — 0.4.1
 
 - **Root Cause**: JIRA Cloud API policy change requiring explicit permission specification
 - **Solution**: Updated `mypermissions` endpoint call to include required `permissions` parameter
 - **Validation**: Verified fix with TypeScript compilation and build process
 - **Testing**: Confirmed no regression in existing functionality
 
-### 📋 Release Process
+### 📋 Release Process — 0.4.1
 
 - **Type**: Patch release (0.4.0 → 0.4.1)
 - **Priority**: Critical - affects core functionality
@@ -259,24 +286,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.1] - 2025-06-01
 
-### Added
+### Added — 0.3.1
 
 - **💬 JIRA Issue Comments Retrieval**: New jira_get_issue_comments tool with progressive disclosure parameters, advanced filtering, and rich formatting
 - **🎨 Comments Formatting System**: Structured markdown display with ADF parsing and context-aware formatting
 
-### Improved
+### Improved — 0.3.1
 
 - **Test Coverage**: Added 37 comprehensive test cases (230 total tests passing)
 - **Code Organization**: New formatters and handlers following existing patterns
 
-### Technical
+### Technical — 0.3.1
 
 - **Progressive Disclosure Pattern**: Successfully implemented and documented for reuse
 - **Architectural Consistency**: Maintained consistency with existing tool patterns
 
 ## [0.3.0] - 2025-05-28
 
-### Added
+### Added — 0.3.0
 
 - **🔍 Advanced Issue Search Functionality**
 
@@ -301,7 +328,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved date formatting and status visualization
   - Action-oriented navigation links between tools
 
-### Improved
+### Improved — 0.3.0
 
 - **Issue Details**: Descriptions now properly display formatted content instead of "[object Object]"
 - **Type Safety**: Enhanced TypeScript definitions for ADF structures and search parameters
@@ -314,7 +341,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Search Validation**: Proper parameter validation with clear error messages
 - **Quote Escaping**: Fixed JQL text search parameter escaping for special characters
 
-### Technical
+### Technical — 0.3.0
 
 - **Comprehensive Test Suite**: 62 unit tests covering ADF parsing, search functionality, and formatting
 - **Schema Validation**: Robust Zod schemas for type-safe parameter validation

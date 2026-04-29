@@ -13,7 +13,7 @@ import type {
  * Builder for formatting worklog entry sections
  */
 class WorklogEntryBuilder {
-  private sections: string[] = [];
+  private readonly sections: string[] = [];
 
   constructor(private readonly worklog: WorklogEntry) {}
 
@@ -37,8 +37,9 @@ class WorklogEntryBuilder {
     );
 
     if (this.worklog.started) {
-      const startedDate = new Date(this.worklog.started).toLocaleString();
-      this.sections.push(`**Started:** ${startedDate}`);
+      this.sections.push(
+        `**Started:** ${this.formatDateTime(this.worklog.started)}`,
+      );
     }
     return this;
   }
@@ -60,13 +61,15 @@ class WorklogEntryBuilder {
    */
   addDateInformation(): this {
     if (this.worklog.created) {
-      const createdDate = new Date(this.worklog.created).toLocaleString();
-      this.sections.push(`**Created:** ${createdDate}`);
+      this.sections.push(
+        `**Created:** ${this.formatDateTime(this.worklog.created)}`,
+      );
     }
 
     if (this.worklog.updated && this.worklog.updated !== this.worklog.created) {
-      const updatedDate = new Date(this.worklog.updated).toLocaleString();
-      this.sections.push(`**Updated:** ${updatedDate}`);
+      this.sections.push(
+        `**Updated:** ${this.formatDateTime(this.worklog.updated)}`,
+      );
 
       if (
         this.worklog.updateAuthor &&
@@ -85,16 +88,18 @@ class WorklogEntryBuilder {
    */
   addComment(): this {
     if (this.worklog.comment) {
-      this.sections.push("**Comment:**");
-      // Handle different comment formats (ADF, string, etc.)
       if (typeof this.worklog.comment === "string") {
-        this.sections.push(this.worklog.comment);
+        this.sections.push("**Comment:**", this.worklog.comment);
       } else if (
         this.worklog.comment &&
         typeof this.worklog.comment === "object"
       ) {
-        // For ADF documents, extract text content
-        this.sections.push(this.extractTextFromADF(this.worklog.comment));
+        this.sections.push(
+          "**Comment:**",
+          this.extractTextFromADF(this.worklog.comment),
+        );
+      } else {
+        this.sections.push("**Comment:**");
       }
     }
     return this;
@@ -156,6 +161,22 @@ class WorklogEntryBuilder {
 
     return "";
   }
+
+  /**
+   * Format date-time strings in a deterministic locale
+   */
+  private formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+  }
 }
 
 /**
@@ -168,11 +189,8 @@ export class WorklogFormatter implements StringFormatter<AddWorklogRequest> {
   format(request: AddWorklogRequest): string {
     const sections: string[] = [];
 
-    // Header
-    sections.push("# ⏱️ Adding Worklog");
-
-    // Time information
-    sections.push(`**Time Spent:** ${request.timeSpent}`);
+    // Header and time information
+    sections.push("# ⏱️ Adding Worklog", `**Time Spent:** ${request.timeSpent}`);
 
     // Start time
     if (request.started) {
@@ -181,8 +199,7 @@ export class WorklogFormatter implements StringFormatter<AddWorklogRequest> {
 
     // Comment
     if (request.comment) {
-      sections.push("**Comment:**");
-      sections.push(request.comment);
+      sections.push("**Comment:**", request.comment);
     }
 
     return sections.join("\n\n");
@@ -212,7 +229,7 @@ export class WorklogEntryFormatter implements StringFormatter<WorklogEntry> {
  * Formatter class for worklog lists - formats multiple worklog entries
  */
 export class WorklogListFormatter implements StringFormatter<WorklogEntry[]> {
-  private entryFormatter = new WorklogEntryFormatter();
+  private readonly entryFormatter = new WorklogEntryFormatter();
 
   /**
    * Format a list of worklog entries for display
@@ -231,20 +248,16 @@ export class WorklogListFormatter implements StringFormatter<WorklogEntry[]> {
     );
     const totalHours = Math.round((totalSeconds / 3600) * 100) / 100;
 
-    sections.push("# ⏱️ Worklogs");
-    sections.push(`**Total Entries:** ${worklogs.length}`);
     sections.push(
+      "# ⏱️ Worklogs",
+      `**Total Entries:** ${worklogs.length}`,
       `**Total Time:** ${totalHours} hours (${totalSeconds} seconds)`,
+      "---",
     );
 
-    // Individual entries
-    sections.push("---");
-
     worklogs.forEach((worklog, index) => {
-      if (index > 0) {
-        sections.push("---");
-      }
-      sections.push(this.entryFormatter.format(worklog));
+      const entry = this.entryFormatter.format(worklog);
+      sections.push(...(index > 0 ? ["---", entry] : [entry]));
     });
 
     return sections.join("\n\n");

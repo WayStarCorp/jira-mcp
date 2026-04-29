@@ -7,58 +7,67 @@
 import type { JiraConfig } from "../../client/config";
 import { JiraHttpClient } from "../../client/http/jira.http-client.impl";
 
-// Import repositories
+// Import repositories, validators, and use cases (issues)
 import {
-  IssueCommentRepositoryImpl,
-  IssueRepositoryImpl,
-  IssueSearchRepositoryImpl,
-  IssueTransitionRepositoryImpl,
-  WorklogRepositoryImpl,
-} from "../../issues";
-
-import {
-  ProjectPermissionRepositoryImpl,
-  ProjectRepositoryImpl,
-} from "../../projects";
-
-import { BoardRepositoryImpl } from "../../boards";
-import { SprintRepositoryImpl } from "../../sprints";
-import { UserProfileRepositoryImpl } from "../../users";
-
-// Import validators
-import {
-  IssueCommentValidatorImpl,
-  IssueParamsValidatorImpl,
-  WorklogValidatorImpl,
-} from "../../issues";
-
-import {
-  ProjectParamsValidatorImpl,
-  ProjectValidatorImpl,
-} from "../../projects";
-
-import { BoardValidatorImpl } from "../../boards";
-import { SprintValidatorImpl } from "../../sprints";
-import { UserProfileValidatorImpl } from "../../users";
-
-// Import use cases
-import {
+  AddIssueCommentUseCaseImpl,
   AddWorklogUseCaseImpl,
   CreateIssueUseCaseImpl,
   DeleteWorklogUseCaseImpl,
   GetAssignedIssuesUseCaseImpl,
   GetIssueCommentsUseCaseImpl,
+  GetIssueCustomFieldMetadataUseCaseImpl,
+  GetIssueLinkTypesUseCaseImpl,
+  GetIssueTransitionsUseCaseImpl,
   GetIssueUseCaseImpl,
   GetWorklogsUseCaseImpl,
+  IssueCommentRepositoryImpl,
+  IssueCommentValidatorImpl,
+  IssueCustomFieldRepositoryImpl,
+  IssueCustomFieldValidatorImpl,
+  IssueLinkRepositoryImpl,
+  IssueParamsValidatorImpl,
+  IssueRepositoryImpl,
+  IssueSearchRepositoryImpl,
+  IssueTransitionRepositoryImpl,
+  LinkIssuesUseCaseImpl,
+  ResolveCustomFieldsUseCaseImpl,
   SearchIssuesUseCaseImpl,
+  TransitionIssueUseCaseImpl,
   UpdateIssueUseCaseImpl,
   UpdateWorklogUseCaseImpl,
+  WorklogRepositoryImpl,
+  WorklogValidatorImpl,
 } from "../../issues";
 
-import { GetBoardsUseCaseImpl } from "../../boards";
-import { GetProjectsUseCaseImpl } from "../../projects";
-import { GetSprintsUseCaseImpl } from "../../sprints";
-import { GetCurrentUserUseCaseImpl } from "../../users";
+import {
+  BoardRepositoryImpl,
+  BoardValidatorImpl,
+  GetBoardsUseCaseImpl,
+} from "../../boards";
+
+import {
+  GetProjectsUseCaseImpl,
+  ProjectParamsValidatorImpl,
+  ProjectPermissionRepositoryImpl,
+  ProjectRepositoryImpl,
+  ProjectValidatorImpl,
+} from "../../projects";
+
+import {
+  AddIssuesToSprintUseCaseImpl,
+  GetSprintsUseCaseImpl,
+  SprintRepositoryImpl,
+  SprintValidatorImpl,
+} from "../../sprints";
+
+import {
+  AssignIssueUseCaseImpl,
+  GetAssignableUsersUseCaseImpl,
+  GetCurrentUserUseCaseImpl,
+  SearchUsersUseCaseImpl,
+  UserProfileRepositoryImpl,
+  UserProfileValidatorImpl,
+} from "../../users";
 
 /**
  * Dependencies interface
@@ -73,6 +82,12 @@ export interface JiraDependencies {
   getIssueUseCase: GetIssueUseCaseImpl;
   getAssignedIssuesUseCase: GetAssignedIssuesUseCaseImpl;
   getIssueCommentsUseCase: GetIssueCommentsUseCaseImpl;
+  getIssueCustomFieldMetadataUseCase: GetIssueCustomFieldMetadataUseCaseImpl;
+  addIssueCommentUseCase: AddIssueCommentUseCaseImpl;
+  getIssueTransitionsUseCase: GetIssueTransitionsUseCaseImpl;
+  getIssueLinkTypesUseCase: GetIssueLinkTypesUseCaseImpl;
+  linkIssuesUseCase: LinkIssuesUseCaseImpl;
+  resolveCustomFieldsUseCase: ResolveCustomFieldsUseCaseImpl;
   addWorklogUseCase: AddWorklogUseCaseImpl;
   getWorklogsUseCase: GetWorklogsUseCaseImpl;
   updateWorklogUseCase: UpdateWorklogUseCaseImpl;
@@ -80,11 +95,17 @@ export interface JiraDependencies {
   getProjectsUseCase: GetProjectsUseCaseImpl;
   getBoardsUseCase: GetBoardsUseCaseImpl;
   getSprintsUseCase: GetSprintsUseCaseImpl;
+  addIssuesToSprintUseCase: AddIssuesToSprintUseCaseImpl;
+  transitionIssueUseCase: TransitionIssueUseCaseImpl;
   getCurrentUserUseCase: GetCurrentUserUseCaseImpl;
+  searchUsersUseCase: SearchUsersUseCaseImpl;
+  getAssignableUsersUseCase: GetAssignableUsersUseCaseImpl;
+  assignIssueUseCase: AssignIssueUseCaseImpl;
 
   // Validators
   issueParamsValidator: IssueParamsValidatorImpl;
   issueCommentValidator: IssueCommentValidatorImpl;
+  issueCustomFieldValidator: IssueCustomFieldValidatorImpl;
   worklogValidator: WorklogValidatorImpl;
   projectParamsValidator: ProjectParamsValidatorImpl;
   boardValidator: BoardValidatorImpl;
@@ -125,6 +146,8 @@ function createRepositories(httpClient: JiraHttpClient) {
     issueRepository: new IssueRepositoryImpl(httpClient),
     issueSearchRepository: new IssueSearchRepositoryImpl(httpClient),
     issueCommentRepository: new IssueCommentRepositoryImpl(httpClient),
+    issueCustomFieldRepository: new IssueCustomFieldRepositoryImpl(httpClient),
+    issueLinkRepository: new IssueLinkRepositoryImpl(httpClient),
     issueTransitionRepository: new IssueTransitionRepositoryImpl(httpClient),
     worklogRepository: new WorklogRepositoryImpl(httpClient),
     projectRepository: new ProjectRepositoryImpl(httpClient),
@@ -144,6 +167,7 @@ function createValidators(httpClient: JiraHttpClient) {
   return {
     issueParamsValidator: new IssueParamsValidatorImpl(),
     issueCommentValidator: new IssueCommentValidatorImpl(),
+    issueCustomFieldValidator: new IssueCustomFieldValidatorImpl(),
     worklogValidator: new WorklogValidatorImpl(),
     projectValidator: new ProjectValidatorImpl(httpClient),
     projectParamsValidator: new ProjectParamsValidatorImpl(),
@@ -184,6 +208,25 @@ function createUseCases(
       repositories.issueCommentRepository,
       validators.issueCommentValidator,
     ),
+    getIssueCustomFieldMetadataUseCase:
+      new GetIssueCustomFieldMetadataUseCaseImpl(
+        repositories.issueCustomFieldRepository,
+      ),
+    addIssueCommentUseCase: new AddIssueCommentUseCaseImpl(
+      repositories.issueCommentRepository,
+    ),
+    getIssueTransitionsUseCase: new GetIssueTransitionsUseCaseImpl(
+      repositories.issueTransitionRepository,
+    ),
+    getIssueLinkTypesUseCase: new GetIssueLinkTypesUseCaseImpl(
+      repositories.issueLinkRepository,
+    ),
+    linkIssuesUseCase: new LinkIssuesUseCaseImpl(
+      repositories.issueLinkRepository,
+    ),
+    resolveCustomFieldsUseCase: new ResolveCustomFieldsUseCaseImpl(
+      repositories.issueCustomFieldRepository,
+    ),
 
     // Worklog use cases
     addWorklogUseCase: new AddWorklogUseCaseImpl(
@@ -208,11 +251,30 @@ function createUseCases(
     getBoardsUseCase: new GetBoardsUseCaseImpl(repositories.boardRepository),
 
     // Sprint use cases
-    getSprintsUseCase: new GetSprintsUseCaseImpl(repositories.sprintRepository),
+    getSprintsUseCase: new GetSprintsUseCaseImpl(
+      repositories.sprintRepository,
+      repositories.boardRepository,
+    ),
+    addIssuesToSprintUseCase: new AddIssuesToSprintUseCaseImpl(
+      repositories.sprintRepository,
+    ),
+    transitionIssueUseCase: new TransitionIssueUseCaseImpl(
+      repositories.issueTransitionRepository,
+    ),
 
     // User use cases
     getCurrentUserUseCase: new GetCurrentUserUseCaseImpl(
       repositories.userProfileRepository,
+    ),
+    searchUsersUseCase: new SearchUsersUseCaseImpl(
+      repositories.userProfileRepository,
+    ),
+    getAssignableUsersUseCase: new GetAssignableUsersUseCaseImpl(
+      repositories.userProfileRepository,
+    ),
+    assignIssueUseCase: new AssignIssueUseCaseImpl(
+      repositories.userProfileRepository,
+      repositories.issueRepository,
     ),
   };
 }

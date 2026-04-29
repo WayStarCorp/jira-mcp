@@ -39,7 +39,7 @@ describe("IssueListFormatter", () => {
         "| Key | Summary | Status | Priority | Updated |",
       );
       expect(result).toContain(
-        "| TEST-123 | Test issue summary | To Do | High | 1/15/2024 |",
+        "| TEST-123 | Test issue summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -68,10 +68,10 @@ describe("IssueListFormatter", () => {
 
       expect(result).toContain("2 issues assigned to you");
       expect(result).toContain(
-        "| TEST-123 | First issue | To Do | High | 1/15/2024 |",
+        "| TEST-123 | First issue | To Do | High | Jan 15, 2024 |",
       );
       expect(result).toContain(
-        "| TEST-456 | Second issue | In Progress | Medium | 1/16/2024 |",
+        "| TEST-456 | Second issue | In Progress | Medium | Jan 16, 2024 |",
       );
     });
 
@@ -89,7 +89,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | To Do | High | 1/15/2024 |",
+        "| TEST-123 | No Summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -107,7 +107,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | Unknown | High | 1/15/2024 |",
+        "| TEST-123 | Test issue | Unknown | High | Jan 15, 2024 |",
       );
     });
 
@@ -125,7 +125,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | To Do | None | 1/15/2024 |",
+        "| TEST-123 | Test issue | To Do | None | Jan 15, 2024 |",
       );
     });
 
@@ -191,7 +191,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       // Should format as locale date string
-      expect(result).toContain("12/25/2024");
+      expect(result).toContain("Dec 25, 2024");
     });
 
     test("should handle invalid date format", () => {
@@ -297,7 +297,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue1, issue2]);
 
       expect(result).toContain(
-        "| TEST-1 | Complete issue | To Do | High | 1/15/2024 |",
+        "| TEST-1 | Complete issue | To Do | High | Jan 15, 2024 |",
       );
       expect(result).toContain(
         "| TEST-2 | Partial issue | Unknown | None | N/A |",
@@ -320,7 +320,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | To Do | High | 1/15/2024 |",
+        "| TEST-123 | No Summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -337,7 +337,9 @@ describe("IssueListFormatter", () => {
 
       const result = formatter.format([issue]);
 
-      expect(result).toContain("| TEST-123 |     | To Do | High | 1/15/2024 |");
+      expect(result).toContain(
+        "| TEST-123 |     | To Do | High | Jan 15, 2024 |",
+      );
     });
 
     test("should handle null status name", () => {
@@ -354,7 +356,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | Unknown | High | 1/15/2024 |",
+        "| TEST-123 | Test issue | Unknown | High | Jan 15, 2024 |",
       );
     });
 
@@ -372,7 +374,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | To Do | None | 1/15/2024 |",
+        "| TEST-123 | Test issue | To Do | None | Jan 15, 2024 |",
       );
     });
   });

@@ -62,6 +62,7 @@ describe("GetIssueCommentsHandler", () => {
 
     mockValidator = {
       validateGetCommentsParams: mock((params) => params),
+      validateAddCommentParams: mock((params) => params),
     };
 
     // Create handler with mocks

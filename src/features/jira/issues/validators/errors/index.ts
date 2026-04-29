@@ -6,4 +6,6 @@
 export * from "./issue.error";
 export * from "./issue-params.error";
 export * from "./issue-comment.error";
+export * from "./custom-field.error";
+export * from "./issue-link.error";
 export * from "./worklog.error";

@@ -9,6 +9,7 @@ export interface SprintRepository {
   getSprints(boardId: number, options?: GetSprintsOptions): Promise<Sprint[]>;
   getSprint(sprintId: number): Promise<Sprint>;
   getSprintReport(sprintId: number): Promise<SprintReport>;
+  addIssuesToSprint(sprintId: number, issueKeys: string[]): Promise<void>;
 }
 
 /**
@@ -32,7 +33,7 @@ export class SprintRepositoryImpl implements SprintRepository {
 
     const queryParams: Record<string, string | number | undefined> = {};
 
-    if (options?.startAt) {
+    if (options?.startAt !== undefined) {
       queryParams.startAt = options.startAt;
     }
 
@@ -48,6 +49,7 @@ export class SprintRepositoryImpl implements SprintRepository {
       endpoint: `board/${boardId}/sprint`,
       method: "GET",
       queryParams,
+      jiraApi: "agile",
     });
 
     return response.values;
@@ -64,6 +66,26 @@ export class SprintRepositoryImpl implements SprintRepository {
     return this.httpClient.sendRequest<Sprint>({
       endpoint: `sprint/${sprintId}`,
       method: "GET",
+      jiraApi: "agile",
+    });
+  }
+
+  /**
+   * Add existing issue keys to a sprint (Agile API).
+   */
+  async addIssuesToSprint(
+    sprintId: number,
+    issueKeys: string[],
+  ): Promise<void> {
+    this.logger.debug(`Adding issues to sprint ${sprintId}`, {
+      prefix: "JIRA:SprintRepository",
+    });
+
+    await this.httpClient.sendRequest<void>({
+      endpoint: `sprint/${sprintId}/issue`,
+      method: "POST",
+      body: { issues: issueKeys },
+      jiraApi: "agile",
     });
   }
 

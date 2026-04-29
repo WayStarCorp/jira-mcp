@@ -5,6 +5,18 @@
  */
 
 /**
+ * Which JIRA REST API prefix to use (same host, different paths).
+ * - `platform` → `/rest/api/3` (issues, search, projects, …)
+ * - `agile` → `/rest/agile/1.0` (boards, sprints, backlog operations)
+ */
+export type JiraRestApiFamily = "platform" | "agile";
+
+/**
+ * Scalar values allowed in JIRA URL query maps (`undefined` entries are omitted when serializing).
+ */
+export type JiraQueryParamValue = string | number | boolean | undefined;
+
+/**
  * Options for HTTP requests to the JIRA API
  */
 export interface HttpRequestOptions {
@@ -21,7 +33,7 @@ export interface HttpRequestOptions {
   /**
    * Optional query parameters
    */
-  queryParams?: Record<string, string | number | boolean | undefined>;
+  queryParams?: Record<string, JiraQueryParamValue>;
 
   /**
    * Optional request body
@@ -32,6 +44,11 @@ export interface HttpRequestOptions {
    * Optional request headers
    */
   headers?: Record<string, string>;
+
+  /**
+   * REST API family (defaults to JIRA platform `/rest/api/3`).
+   */
+  jiraApi?: JiraRestApiFamily;
 }
 
 /**

@@ -6,6 +6,8 @@ import type { Comment } from "@features/jira/issues/models/comment.models";
 import type { Issue } from "@features/jira/issues/models/issue.models";
 import type {
   IssueCommentRepository,
+  IssueCustomFieldRepository,
+  IssueLinkRepository,
   IssueRepository,
   IssueSearchRepository,
   IssueTransitionRepository,
@@ -20,6 +22,7 @@ export function createMockIssueRepository() {
     getIssue: mock(),
     createIssue: mock(),
     updateIssue: mock(),
+    assignIssue: mock(),
   } as unknown as IssueRepository;
 }
 
@@ -37,8 +40,8 @@ export function createMockIssueSearchRepository() {
  */
 export function createMockIssueTransitionRepository() {
   return {
-    getTransitions: mock(),
-    transition: mock(),
+    getIssueTransitions: mock(),
+    transitionIssue: mock(),
   } as unknown as IssueTransitionRepository;
 }
 
@@ -47,8 +50,28 @@ export function createMockIssueTransitionRepository() {
  */
 export function createMockIssueCommentRepository() {
   return {
-    getComments: mock(),
+    getIssueComments: mock(),
+    addIssueComment: mock(),
   } as unknown as IssueCommentRepository;
+}
+
+/**
+ * Creates a mock issue custom field repository
+ */
+export function createMockIssueCustomFieldRepository() {
+  return {
+    getIssueCustomFieldMetadata: mock(),
+  } as unknown as IssueCustomFieldRepository;
+}
+
+/**
+ * Creates a mock issue link repository
+ */
+export function createMockIssueLinkRepository() {
+  return {
+    getIssueLinkTypes: mock(),
+    linkIssues: mock(),
+  } as unknown as IssueLinkRepository;
 }
 
 /**

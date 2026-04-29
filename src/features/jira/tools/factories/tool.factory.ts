@@ -9,22 +9,33 @@ import type { JiraDependencies } from "./dependency.factory";
 
 // Import handlers
 import {
+  AddIssueCommentHandler,
   AddWorklogHandler,
   CreateIssueHandler,
   DeleteWorklogHandler,
   GetAssignedIssuesHandler,
+  GetCustomFieldMetadataHandler,
   GetIssueCommentsHandler,
   GetIssueHandler,
+  GetIssueLinkTypesHandler,
+  GetIssueTransitionsHandler,
   GetWorklogsHandler,
+  LinkIssuesHandler,
   SearchIssuesHandler,
+  TransitionIssueHandler,
   UpdateIssueHandler,
   UpdateWorklogHandler,
 } from "../../issues";
 
 import { GetBoardsHandler } from "../../boards";
 import { GetProjectsHandler } from "../../projects";
-import { GetSprintsHandler } from "../../sprints";
-import { GetCurrentUserHandler } from "../../users";
+import { AddIssuesToSprintHandler, GetSprintsHandler } from "../../sprints";
+import {
+  AssignIssueHandler,
+  GetAssignableUsersHandler,
+  GetCurrentUserHandler,
+  SearchUsersHandler,
+} from "../../users";
 
 /**
  * Create JIRA tools with dependencies
@@ -75,6 +86,15 @@ function createIssueHandlers(dependencies: JiraDependencies) {
     dependencies.issueCommentValidator,
   );
 
+  const addIssueCommentHandler = new AddIssueCommentHandler(
+    dependencies.addIssueCommentUseCase,
+    dependencies.issueCommentValidator,
+  );
+
+  const getIssueTransitionsHandler = new GetIssueTransitionsHandler(
+    dependencies.getIssueTransitionsUseCase,
+  );
+
   const getAssignedIssuesHandler = new GetAssignedIssuesHandler(
     dependencies.getAssignedIssuesUseCase,
   );
@@ -85,6 +105,24 @@ function createIssueHandlers(dependencies: JiraDependencies) {
 
   const updateIssueHandler = new UpdateIssueHandler(
     dependencies.updateIssueUseCase,
+    dependencies.resolveCustomFieldsUseCase,
+  );
+
+  const transitionIssueHandler = new TransitionIssueHandler(
+    dependencies.transitionIssueUseCase,
+  );
+
+  const getCustomFieldMetadataHandler = new GetCustomFieldMetadataHandler(
+    dependencies.getIssueCustomFieldMetadataUseCase,
+    dependencies.issueCustomFieldValidator,
+  );
+
+  const getIssueLinkTypesHandler = new GetIssueLinkTypesHandler(
+    dependencies.getIssueLinkTypesUseCase,
+  );
+
+  const linkIssuesHandler = new LinkIssuesHandler(
+    dependencies.linkIssuesUseCase,
   );
 
   const searchIssuesHandler = new SearchIssuesHandler(
@@ -98,14 +136,33 @@ function createIssueHandlers(dependencies: JiraDependencies) {
     jira_get_issue_comments: {
       handle: async (args: unknown) => getIssueCommentsHandler.handle(args),
     },
+    jira_add_issue_comment: {
+      handle: async (args: unknown) => addIssueCommentHandler.handle(args),
+    },
     jira_get_assigned_issues: {
       handle: async (args: unknown) => getAssignedIssuesHandler.handle(args),
+    },
+    jira_get_issue_transitions: {
+      handle: async (args: unknown) => getIssueTransitionsHandler.handle(args),
+    },
+    jira_get_issue_custom_field_metadata: {
+      handle: async (args: unknown) =>
+        getCustomFieldMetadataHandler.handle(args),
     },
     jira_create_issue: {
       handle: async (args: unknown) => createIssueHandler.handle(args),
     },
+    jira_transition_issue: {
+      handle: async (args: unknown) => transitionIssueHandler.handle(args),
+    },
     jira_update_issue: {
       handle: async (args: unknown) => updateIssueHandler.handle(args),
+    },
+    jira_get_issue_link_types: {
+      handle: async (args: unknown) => getIssueLinkTypesHandler.handle(args),
+    },
+    jira_link_issues: {
+      handle: async (args: unknown) => linkIssuesHandler.handle(args),
     },
     jira_search_issues: {
       handle: async (args: unknown) => searchIssuesHandler.handle(args),
@@ -194,9 +251,17 @@ function createSprintHandlers(dependencies: JiraDependencies) {
     dependencies.sprintValidator,
   );
 
+  const addIssuesToSprintHandler = new AddIssuesToSprintHandler(
+    dependencies.addIssuesToSprintUseCase,
+    dependencies.sprintValidator,
+  );
+
   return {
     jira_get_sprints: {
       handle: async (args: unknown) => getSprintsHandler.handle(args),
+    },
+    jira_add_issues_to_sprint: {
+      handle: async (args: unknown) => addIssuesToSprintHandler.handle(args),
     },
   };
 }
@@ -209,9 +274,30 @@ function createUserHandlers(dependencies: JiraDependencies) {
     dependencies.getCurrentUserUseCase,
   );
 
+  const searchUsersHandler = new SearchUsersHandler(
+    dependencies.searchUsersUseCase,
+  );
+
+  const getAssignableUsersHandler = new GetAssignableUsersHandler(
+    dependencies.getAssignableUsersUseCase,
+  );
+
+  const assignIssueHandler = new AssignIssueHandler(
+    dependencies.assignIssueUseCase,
+  );
+
   return {
     jira_get_current_user: {
       handle: async (args: unknown) => getCurrentUserHandler.handle(args),
+    },
+    jira_search_users: {
+      handle: async (args: unknown) => searchUsersHandler.handle(args),
+    },
+    jira_get_assignable_users: {
+      handle: async (args: unknown) => getAssignableUsersHandler.handle(args),
+    },
+    jira_assign_issue: {
+      handle: async (args: unknown) => assignIssueHandler.handle(args),
     },
   };
 }

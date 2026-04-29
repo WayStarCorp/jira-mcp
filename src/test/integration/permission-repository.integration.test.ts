@@ -2,14 +2,14 @@
  * Integration tests for ProjectPermissionRepository
  * Tests the actual JIRA API endpoint for permission checking
  */
-import { describe, test, expect, beforeAll } from "bun:test";
-import { JiraHttpClient } from "@features/jira/client/http";
-import { ProjectPermissionRepositoryImpl } from "@features/jira/projects/repositories/project-permission.repository";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { JiraConfigService } from "@features/jira/client/config";
+import { JiraHttpClient } from "@features/jira/client/http";
 import type { ProjectPermissions } from "@features/jira/projects/models";
+import { ProjectPermissionRepositoryImpl } from "@features/jira/projects/repositories/project-permission.repository";
 import {
-  hasJiraCredentials,
   getJiraCredentialsSkipReason,
+  hasJiraCredentials,
 } from "../utils/jira-credentials";
 
 describe("ProjectPermissionRepository Integration Tests", () => {

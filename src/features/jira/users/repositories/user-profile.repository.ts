@@ -8,6 +8,12 @@ import type { User } from "../models";
  */
 export interface UserProfileRepository {
   getCurrentUser(): Promise<User>;
+  searchUsers(query: string, maxResults?: number): Promise<User[]>;
+  getAssignableUsers(
+    issueKey: string,
+    query?: string,
+    maxResults?: number,
+  ): Promise<User[]>;
 }
 
 /**
@@ -30,6 +36,52 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     return this.httpClient.sendRequest<User>({
       endpoint: "myself",
       method: "GET",
+    });
+  }
+
+  /**
+   * Search users by query string
+   */
+  async searchUsers(query: string, maxResults = 20): Promise<User[]> {
+    this.logger.debug(`Searching users for query: ${query}`, {
+      prefix: "JIRA:UserProfileRepository",
+    });
+
+    return this.httpClient.sendRequest<User[]>({
+      endpoint: "user/search",
+      method: "GET",
+      queryParams: {
+        query,
+        maxResults,
+      },
+    });
+  }
+
+  /**
+   * Get users assignable to a specific issue
+   */
+  async getAssignableUsers(
+    issueKey: string,
+    query?: string,
+    maxResults = 20,
+  ): Promise<User[]> {
+    this.logger.debug(`Getting assignable users for issue: ${issueKey}`, {
+      prefix: "JIRA:UserProfileRepository",
+    });
+
+    const queryParams: Record<string, string | number | undefined> = {
+      issueKey,
+      maxResults,
+    };
+
+    if (query) {
+      queryParams.query = query;
+    }
+
+    return this.httpClient.sendRequest<User[]>({
+      endpoint: "user/assignable/search",
+      method: "GET",
+      queryParams,
     });
   }
 }

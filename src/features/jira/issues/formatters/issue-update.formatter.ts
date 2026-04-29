@@ -185,8 +185,9 @@ export class IssueUpdateFormatter implements StringFormatter<Issue> {
 
     // Updated timestamp - show label even when missing
     if (issue.fields?.updated) {
-      const updatedDate = new Date(issue.fields.updated);
-      fields.push(`**Last Updated:** ${updatedDate.toLocaleString()}`);
+      fields.push(
+        `**Last Updated:** ${this.formatDateTime(issue.fields.updated)}`,
+      );
     } else {
       fields.push("**Last Updated:**");
     }
@@ -206,12 +207,20 @@ export class IssueUpdateFormatter implements StringFormatter<Issue> {
     if (originalEstimate !== undefined || remainingEstimate !== undefined) {
       const timeInfo: string[] = [];
 
-      if (originalEstimate && typeof originalEstimate === "number") {
+      if (
+        originalEstimate !== undefined &&
+        originalEstimate !== null &&
+        typeof originalEstimate === "number"
+      ) {
         const hours = this.convertSecondsToHours(originalEstimate);
         timeInfo.push(`Original: ${hours}h`);
       }
 
-      if (remainingEstimate && typeof remainingEstimate === "number") {
+      if (
+        remainingEstimate !== undefined &&
+        remainingEstimate !== null &&
+        typeof remainingEstimate === "number"
+      ) {
         const hours = this.convertSecondsToHours(remainingEstimate);
         timeInfo.push(`Remaining: ${hours}h`);
       }
@@ -230,11 +239,27 @@ export class IssueUpdateFormatter implements StringFormatter<Issue> {
   }
 
   /**
+   * Format date-time strings in a deterministic locale
+   */
+  private formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
+  }
+
+  /**
    * Add story points information
    */
   private addStoryPoints(issue: Issue, fields: string[]): void {
-    const storyPoints = issue.fields?.customfield_10004;
-    if (storyPoints !== undefined && storyPoints !== null) {
+    const storyPoints = issue.fields?.customfield_10016;
+    if (typeof storyPoints === "number" || typeof storyPoints === "string") {
       fields.push(`Story Points: ${storyPoints}`);
     }
   }
@@ -246,13 +271,13 @@ export class IssueUpdateFormatter implements StringFormatter<Issue> {
     const baseUrl = issue.self
       ? issue.self
           .replace("/rest/api/3/issue/", "/browse/")
-          .replace(/\/[^\/]*$/, `/${issue.key}`)
+          .replace(/\/[^/]*$/, `/${issue.key}`)
       : `https://your-domain.atlassian.net/browse/${issue.key}`;
 
     const editUrl = issue.self
       ? issue.self
           .replace("/rest/api/3/issue/", "/secure/EditIssue!default.jspa?key=")
-          .replace(/\/[^\/]*$/, `=${issue.key}`)
+          .replace(/\/[^/]*$/, `=${issue.key}`)
           .replace(/\/secure=/, "/secure/EditIssue!default.jspa?key=")
       : `https://your-domain.atlassian.net/secure/EditIssue!default.jspa?key=${issue.key}`;
 
@@ -315,8 +340,8 @@ export class IssueUpdateFormatter implements StringFormatter<Issue> {
 
     // Context with empty arrays and false booleans (no meaningful content)
     const hasEmptyArrays =
-      (context.fieldsUpdated && context.fieldsUpdated.length === 0) ||
-      (context.arraysUpdated && context.arraysUpdated.length === 0);
+      context.fieldsUpdated?.length === 0 ||
+      context.arraysUpdated?.length === 0;
     const hasFalseBooleans =
       context.hasTransition === false || context.hasWorklog === false;
     const hasNoTrueValues =

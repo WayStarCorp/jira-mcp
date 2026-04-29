@@ -26,23 +26,29 @@ export class IssueListFormatter implements Formatter<Issue[], string> {
     markdown += "| Key | Summary | Status | Priority | Updated |\n";
     markdown += "| --- | ------- | ------ | -------- | ------- |\n";
 
-    for (const issue of issues) {
-      const key = issue.key;
-      const fields = issue.fields || {};
-      const summary = fields.summary || "No Summary";
-      const status = fields.status?.name || "Unknown";
-      const priority = fields.priority?.name || "None";
+    for (const { key, fields: issueFields } of issues) {
+      const { summary, status, priority, updated } = issueFields ?? {};
+      const summaryText = summary || "No Summary";
+      const statusName = status?.name || "Unknown";
+      const priorityName = priority?.name || "None";
+      const updatedDisplay = updated ? this.formatDate(updated) : "N/A";
 
-      // Format the updated date if it exists
-      let updated = "N/A";
-      if (fields.updated) {
-        const updatedDate = new Date(fields.updated);
-        updated = updatedDate.toLocaleDateString();
-      }
-
-      markdown += `| ${key} | ${summary} | ${status} | ${priority} | ${updated} |\n`;
+      markdown += `| ${key} | ${summaryText} | ${statusName} | ${priorityName} | ${updatedDisplay} |\n`;
     }
 
     return markdown;
+  }
+
+  /**
+   * Format a date string in a deterministic locale
+   */
+  private formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
   }
 }

@@ -406,6 +406,72 @@ describe("IssueRepositoryImpl", () => {
     });
   });
 
+  describe("assignIssue", () => {
+    it("should assign issue successfully", async () => {
+      // Arrange
+      const issueKey = "TEST-123";
+      const accountId = "account-123";
+      const assignedIssue = IssueRepositoryMockFactory.createMockIssue({
+        key: issueKey,
+        fields: {
+          ...IssueRepositoryMockFactory.createMockIssue().fields,
+          assignee: {
+            accountId,
+            displayName: "Assigned User",
+            emailAddress: "assigned@example.com",
+            avatarUrls: {
+              "48x48": "https://example.com/avatar.png",
+            },
+          },
+        },
+      });
+
+      (mockHttpClient.sendRequest as jest.Mock)
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(assignedIssue);
+
+      // Act
+      const result = await repository.assignIssue(issueKey, accountId);
+
+      // Assert
+      expect(result).toEqual(assignedIssue);
+      expect(mockHttpClient.sendRequest).toHaveBeenCalledTimes(2);
+      expect(mockHttpClient.sendRequest).toHaveBeenNthCalledWith(1, {
+        endpoint: `issue/${issueKey}/assignee`,
+        method: "PUT",
+        body: {
+          accountId,
+        },
+      });
+      expect(mockHttpClient.sendRequest).toHaveBeenNthCalledWith(2, {
+        endpoint: `issue/${issueKey}`,
+        method: "GET",
+        queryParams: {},
+      });
+    });
+
+    it("should handle assignment failure", async () => {
+      // Arrange
+      const issueKey = "TEST-123";
+      const accountId = "account-123";
+      const error = new Error("Issue not found");
+
+      (mockHttpClient.sendRequest as jest.Mock).mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(repository.assignIssue(issueKey, accountId)).rejects.toThrow(
+        "Issue not found",
+      );
+      expect(mockHttpClient.sendRequest).toHaveBeenCalledWith({
+        endpoint: `issue/${issueKey}/assignee`,
+        method: "PUT",
+        body: {
+          accountId,
+        },
+      });
+    });
+  });
+
   describe("getIssueWithResponse", () => {
     it("should return success response when issue is found", async () => {
       // Arrange

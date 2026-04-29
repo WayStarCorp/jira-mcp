@@ -4,8 +4,11 @@
 
 // Export all validators, types, and schemas
 export * from "./issue-comment.validator";
+export * from "./custom-field.validator";
 export * from "./issue-field.validator";
 export * from "./issue-params.validator";
+export * from "./issue-link.validator";
+export * from "./issue-transition.validator";
 export * from "./worklog.validator";
 
 // Export schemas from validators
@@ -16,7 +19,14 @@ export {
   issueFieldsSchema,
 } from "./issue-params.validator";
 
+export {
+  workflowTransitionIssueFieldsSchema,
+  getIssueTransitionsParamsSchema,
+  workflowTransitionIssueParamsSchema,
+} from "./issue-transition.validator";
+
 export { getIssueCommentsSchema } from "./issue-comment.validator";
+export { addIssueCommentSchema } from "./issue-comment.validator";
 
 export {
   addWorklogParamsSchema,

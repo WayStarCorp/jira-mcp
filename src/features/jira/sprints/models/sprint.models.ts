@@ -65,12 +65,12 @@ export interface GetSprintsOptions {
   /**
    * ID of the board to get sprints from
    */
-  boardId: number;
+  boardId?: number;
 
   /**
    * State of the sprints to filter by
    */
-  state?: SprintState | string;
+  state?: SprintState;
 
   /**
    * Pagination start index

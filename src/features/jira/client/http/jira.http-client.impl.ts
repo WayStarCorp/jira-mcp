@@ -14,9 +14,9 @@ import {
 import { JiraHttpErrorHandler } from "./jira-http-error.handler";
 import type { HttpClient, HttpRequestOptions } from "./jira.http.types";
 import {
-  JiraUrlBuilder,
   JiraRequestBuilder,
   JiraResponseHandler,
+  JiraUrlBuilder,
 } from "./utils";
 
 /**
@@ -60,8 +60,15 @@ export class JiraHttpClient implements HttpClient {
    * @throws ApiError if the request fails
    */
   public async sendRequest<T>(options: HttpRequestOptions): Promise<T> {
-    const { endpoint, method, queryParams, body, headers = {} } = options;
-    const url = this.urlBuilder.buildUrl(endpoint, queryParams);
+    const {
+      endpoint,
+      method,
+      queryParams,
+      body,
+      headers = {},
+      jiraApi = "platform",
+    } = options;
+    const url = this.urlBuilder.buildUrl(endpoint, queryParams, jiraApi);
 
     try {
       // Set up request parameters

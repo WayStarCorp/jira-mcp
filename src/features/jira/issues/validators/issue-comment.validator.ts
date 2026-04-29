@@ -5,6 +5,7 @@
  */
 
 import { formatZodError } from "@core/utils/validation";
+import { JIRA_MAX_COMMENT_LENGTH } from "@features/jira/shared/constants/jira-limits";
 import { z } from "zod";
 import { CommentParamsValidationError } from "./errors";
 import { issueKeySchema } from "./issue-params.validator";
@@ -33,9 +34,19 @@ export const getIssueCommentsSchema = z.object({
 });
 
 /**
+ * Schema for adding an issue comment.
+ */
+export const addIssueCommentSchema = z.object({
+  issueKey: issueKeySchema,
+  comment: z.string().min(1).max(JIRA_MAX_COMMENT_LENGTH),
+});
+
+/**
  * Type for get issue comments parameters
  */
 export type GetIssueCommentsParams = z.infer<typeof getIssueCommentsSchema>;
+
+export type AddIssueCommentParams = z.infer<typeof addIssueCommentSchema>;
 
 /**
  * Interface for issue comment validator
@@ -50,6 +61,16 @@ export interface IssueCommentValidator {
   validateGetCommentsParams(
     params: GetIssueCommentsParams,
   ): GetIssueCommentsParams;
+
+  /**
+   * Validate add issue comment parameters
+   *
+   * @param params - Parameters to validate
+   * @returns Validated parameters
+   */
+  validateAddCommentParams(
+    params: AddIssueCommentParams,
+  ): AddIssueCommentParams;
 }
 
 /**
@@ -70,6 +91,24 @@ export class IssueCommentValidatorImpl implements IssueCommentValidator {
 
     if (!result.success) {
       const errorMessage = `Invalid issue comment parameters: ${formatZodError(
+        result.error,
+      )}`;
+      throw new CommentParamsValidationError(errorMessage, { params });
+    }
+
+    return result.data;
+  }
+
+  /**
+   * Validate parameters for adding an issue comment
+   */
+  public validateAddCommentParams(
+    params: AddIssueCommentParams,
+  ): AddIssueCommentParams {
+    const result = addIssueCommentSchema.safeParse(params);
+
+    if (!result.success) {
+      const errorMessage = `Invalid add comment parameters: ${formatZodError(
         result.error,
       )}`;
       throw new CommentParamsValidationError(errorMessage, { params });

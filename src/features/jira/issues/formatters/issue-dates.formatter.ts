@@ -21,13 +21,15 @@ export class IssueDatesFormatter {
     const dateLines: string[] = [];
 
     if (issue.fields?.created) {
-      const createdDate = new Date(issue.fields.created).toLocaleString();
-      dateLines.push(`**Created**: ${createdDate}`);
+      dateLines.push(
+        `**Created**: ${this.formatDateTime(issue.fields.created)}`,
+      );
     }
 
     if (issue.fields?.updated) {
-      const updatedDate = new Date(issue.fields.updated).toLocaleString();
-      dateLines.push(`**Updated**: ${updatedDate}`);
+      dateLines.push(
+        `**Updated**: ${this.formatDateTime(issue.fields.updated)}`,
+      );
     }
 
     if (dateLines.length === 0) {
@@ -42,5 +44,21 @@ export class IssueDatesFormatter {
    */
   private hasDates(issue: Issue): boolean {
     return !!(issue?.fields?.created || issue?.fields?.updated);
+  }
+
+  /**
+   * Format date-time strings in a deterministic locale
+   */
+  private formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    });
   }
 }

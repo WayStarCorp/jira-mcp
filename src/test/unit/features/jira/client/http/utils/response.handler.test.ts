@@ -3,20 +3,22 @@ import { JiraResponseHandler } from "@features/jira/client/http/utils/response.h
 
 describe("JiraResponseHandler", () => {
   const handler = new JiraResponseHandler();
+  const createJsonResponse = (data: unknown, status = 200): Response =>
+    ({
+      status,
+      text: mock(() => Promise.resolve(JSON.stringify(data))),
+    }) as unknown as Response;
 
   describe("processResponse", () => {
     describe("successful responses", () => {
       it("should process JSON response successfully", async () => {
         const mockData = { id: "TEST-123", summary: "Test issue" };
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
         expect(result).toEqual(mockData);
-        expect(mockResponse.json).toHaveBeenCalledTimes(1);
+        expect(mockResponse.text).toHaveBeenCalledTimes(1);
       });
 
       it("should handle complex JSON objects", async () => {
@@ -40,10 +42,7 @@ describe("JiraResponseHandler", () => {
           maxResults: 50,
         };
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -56,10 +55,7 @@ describe("JiraResponseHandler", () => {
           { id: "2", name: "Project B" },
         ];
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -69,10 +65,7 @@ describe("JiraResponseHandler", () => {
       it("should handle string responses", async () => {
         const mockData = "Simple string response";
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -82,10 +75,7 @@ describe("JiraResponseHandler", () => {
       it("should handle number responses", async () => {
         const mockData = 42;
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -95,10 +85,7 @@ describe("JiraResponseHandler", () => {
       it("should handle boolean responses", async () => {
         const mockData = true;
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -108,10 +95,7 @@ describe("JiraResponseHandler", () => {
       it("should handle null responses", async () => {
         const mockData = null;
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -147,7 +131,7 @@ describe("JiraResponseHandler", () => {
       it("should throw error when JSON parsing fails", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject(new Error("Invalid JSON"))),
+          text: mock(() => Promise.reject(new Error("Invalid JSON"))),
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
@@ -158,18 +142,19 @@ describe("JiraResponseHandler", () => {
       it("should handle SyntaxError from JSON parsing", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject(new SyntaxError("Unexpected token"))),
+          text: mock(() => Promise.resolve("{")),
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
-          "Failed to parse JSON response: Unexpected token",
+          "Failed to parse JSON response:",
         );
       });
 
       it("should handle non-Error objects in JSON parsing", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject("String error")),
+          // Rejection is not an Error on purpose: covers the `String(error)` branch in parseJsonResponse
+          text: mock(() => Promise.reject("String error" as never)), // NOSONAR: non-Error rejection
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
@@ -180,7 +165,13 @@ describe("JiraResponseHandler", () => {
       it("should handle undefined error in JSON parsing", async () => {
         const mockResponse = {
           status: 200,
-          json: mock(() => Promise.reject(undefined)),
+          text: mock(
+            () =>
+              new Promise<never>((_, reject) => {
+                // undefined rejection: tests `String(error)` when error is undefined
+                reject(); // NOSONAR: reject with undefined, not an Error
+              }),
+          ),
         } as unknown as Response;
 
         await expect(handler.processResponse(mockResponse)).rejects.toThrow(
@@ -192,10 +183,7 @@ describe("JiraResponseHandler", () => {
     describe("different status codes", () => {
       it("should process 200 OK responses", async () => {
         const mockData = { success: true };
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -204,10 +192,7 @@ describe("JiraResponseHandler", () => {
 
       it("should process 201 Created responses", async () => {
         const mockData = { id: "NEW-123", created: true };
-        const mockResponse = {
-          status: 201,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData, 201);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -216,24 +201,42 @@ describe("JiraResponseHandler", () => {
 
       it("should process other 2xx responses", async () => {
         const mockData = { updated: true };
-        const mockResponse = {
-          status: 202,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData, 202);
 
         const result = await handler.processResponse(mockResponse);
 
         expect(result).toEqual(mockData);
+      });
+
+      it("should return empty object for 201 response with empty body", async () => {
+        const mockResponse = {
+          status: 201,
+          text: mock(() => Promise.resolve("")),
+        } as unknown as Response;
+
+        const result = await handler.processResponse(mockResponse);
+
+        expect(result).toEqual({});
+        expect(mockResponse.text).toHaveBeenCalledTimes(1);
+      });
+
+      it("should require the response body text reader", async () => {
+        const mockResponse = {
+          status: 200,
+          json: mock(() => Promise.resolve({ success: true })),
+        } as unknown as Response;
+
+        await expect(handler.processResponse(mockResponse)).rejects.toThrow(
+          "Failed to parse JSON response: Response body text reader is unavailable",
+        );
+        expect(mockResponse.json).not.toHaveBeenCalled();
       });
     });
 
     describe("edge cases", () => {
       it("should handle empty JSON object", async () => {
         const mockData = {};
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -242,10 +245,7 @@ describe("JiraResponseHandler", () => {
 
       it("should handle empty array", async () => {
         const mockData: unknown[] = [];
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -265,10 +265,7 @@ describe("JiraResponseHandler", () => {
           },
         };
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -284,10 +281,7 @@ describe("JiraResponseHandler", () => {
           "🚀": "emoji key",
         };
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result = await handler.processResponse(mockResponse);
 
@@ -309,10 +303,7 @@ describe("JiraResponseHandler", () => {
           count: 42,
         };
 
-        const mockResponse = {
-          status: 200,
-          json: mock(() => Promise.resolve(mockData)),
-        } as unknown as Response;
+        const mockResponse = createJsonResponse(mockData);
 
         const result =
           await handler.processResponse<TestResponse>(mockResponse);

@@ -5,11 +5,13 @@ import { mock } from "bun:test";
 import type { BoardRepository } from "@features/jira/boards/repositories";
 import type {
   IssueCommentRepository,
+  IssueCustomFieldRepository,
+  IssueLinkRepository,
+  IssueRepository,
+  IssueSearchRepository,
+  IssueTransitionRepository,
   WorklogRepository,
 } from "@features/jira/issues/repositories";
-import type { IssueRepository } from "@features/jira/issues/repositories";
-import type { IssueSearchRepository } from "@features/jira/issues/repositories";
-import type { IssueTransitionRepository } from "@features/jira/issues/repositories";
 import type { ProjectRepository } from "@features/jira/projects/repositories";
 import type { SprintRepository } from "@features/jira/sprints/repositories";
 import type { UserProfileRepository } from "@features/jira/users/repositories/user-profile.repository";
@@ -31,6 +33,7 @@ export function createMockIssueRepository() {
     getIssue: mock(),
     createIssue: mock(),
     updateIssue: mock(),
+    assignIssue: mock(),
   } as IssueRepository & Record<keyof IssueRepository, ReturnType<typeof mock>>;
 }
 
@@ -61,8 +64,30 @@ export function createMockIssueTransitionRepository() {
 export function createMockIssueCommentRepository() {
   return {
     getIssueComments: mock(),
+    addIssueComment: mock(),
   } as IssueCommentRepository &
     Record<keyof IssueCommentRepository, ReturnType<typeof mock>>;
+}
+
+/**
+ * Creates a mock issue custom field repository
+ */
+export function createMockIssueCustomFieldRepository() {
+  return {
+    getIssueCustomFieldMetadata: mock(),
+  } as IssueCustomFieldRepository &
+    Record<keyof IssueCustomFieldRepository, ReturnType<typeof mock>>;
+}
+
+/**
+ * Creates a mock issue link repository
+ */
+export function createMockIssueLinkRepository() {
+  return {
+    getIssueLinkTypes: mock(),
+    linkIssues: mock(),
+  } as IssueLinkRepository &
+    Record<keyof IssueLinkRepository, ReturnType<typeof mock>>;
 }
 
 /**
@@ -81,6 +106,8 @@ export function createMockProjectRepository() {
 export function createMockSprintRepository() {
   return {
     getSprints: mock(),
+    getSprint: mock(),
+    addIssuesToSprint: mock(),
   } as SprintRepository &
     Record<keyof SprintRepository, ReturnType<typeof mock>>;
 }
@@ -91,6 +118,8 @@ export function createMockSprintRepository() {
 export function createMockUserProfileRepository() {
   return {
     getCurrentUser: mock(),
+    searchUsers: mock(),
+    getAssignableUsers: mock(),
   } as UserProfileRepository &
     Record<keyof UserProfileRepository, ReturnType<typeof mock>>;
 }

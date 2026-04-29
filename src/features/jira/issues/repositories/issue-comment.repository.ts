@@ -1,5 +1,6 @@
 import { logger } from "@core/logging";
 import type { HttpClient } from "@features/jira/client/http/jira.http.types";
+import { ensureADFFormat } from "@features/jira/shared/parsers/adf.parser";
 import type { Comment, GetCommentsOptions } from "../models";
 
 /**
@@ -21,6 +22,7 @@ export interface IssueCommentRepository {
     issueKey: string,
     options?: GetCommentsOptions,
   ): Promise<Comment[]>;
+  addIssueComment(issueKey: string, comment: string): Promise<Comment>;
 }
 
 /**
@@ -68,5 +70,22 @@ export class IssueCommentRepositoryImpl implements IssueCommentRepository {
     });
 
     return response.comments;
+  }
+
+  /**
+   * Add a comment to a specific issue
+   */
+  async addIssueComment(issueKey: string, comment: string): Promise<Comment> {
+    this.logger.debug(`Adding comment to issue: ${issueKey}`, {
+      prefix: "JIRA:IssueCommentRepository",
+    });
+
+    const body = ensureADFFormat(comment);
+
+    return this.httpClient.sendRequest<Comment>({
+      endpoint: `issue/${issueKey}/comment`,
+      method: "POST",
+      body: { body },
+    });
   }
 }

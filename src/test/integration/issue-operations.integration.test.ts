@@ -2,20 +2,20 @@
  * Integration tests for Issue Operations (Create/Update)
  * Tests the complete flow from permission checking to actual issue operations
  */
-import { describe, test, expect, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { JiraConfigService } from "@features/jira/client/config";
 import { JiraHttpClient } from "@features/jira/client/http";
-import { ProjectPermissionRepositoryImpl } from "@features/jira/projects/repositories/project-permission.repository";
+import type { Issue } from "@features/jira/issues/models/issue.models";
+import { IssueTransitionRepositoryImpl } from "@features/jira/issues/repositories/issue-transition.repository";
 import { IssueRepositoryImpl } from "@features/jira/issues/repositories/issue.repository";
+import { WorklogRepositoryImpl } from "@features/jira/issues/repositories/worklog.repository";
 import { CreateIssueUseCaseImpl } from "@features/jira/issues/use-cases/create-issue.use-case";
 import { UpdateIssueUseCaseImpl } from "@features/jira/issues/use-cases/update-issue.use-case";
+import { ProjectPermissionRepositoryImpl } from "@features/jira/projects/repositories/project-permission.repository";
 import { ProjectValidatorImpl } from "@features/jira/projects/validators/project.validator";
-import { IssueTransitionRepositoryImpl } from "@features/jira/issues/repositories/issue-transition.repository";
-import { WorklogRepositoryImpl } from "@features/jira/issues/repositories/worklog.repository";
-import { JiraConfigService } from "@features/jira/client/config";
-import type { Issue } from "@features/jira/issues/models/issue.models";
 import {
-  hasJiraCredentials,
   getJiraCredentialsSkipReason,
+  hasJiraCredentials,
 } from "../utils/jira-credentials";
 
 describe("Issue Operations Integration Tests", () => {

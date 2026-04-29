@@ -260,7 +260,7 @@ describe("IssuesListFormatter", () => {
         },
       };
 
-      const issues = Array(25).fill(mockIssue);
+      const issues = new Array(25).fill(mockIssue);
       const result = formatter.format(issues, maxMetadata);
       expect(result).toContain(
         "*Showing first 25 results. Use `maxResults` parameter to see more.*",
@@ -278,7 +278,7 @@ describe("IssuesListFormatter", () => {
         },
       };
 
-      const issues = Array(10).fill(mockIssue);
+      const issues = new Array(10).fill(mockIssue);
       const result = formatter.format(issues, underMetadata);
       expect(result).not.toContain("*Showing first");
     });
@@ -289,8 +289,8 @@ describe("IssuesListFormatter", () => {
       const result = formatter.format([mockIssue], mockMetadata);
       expect(result).toContain("Created:");
       expect(result).toContain("Updated:");
-      expect(result).toContain("1/15/2024"); // Created date
-      expect(result).toContain("1/16/2024"); // Updated date
+      expect(result).toContain("Jan 15, 2024"); // Created date
+      expect(result).toContain("Jan 16, 2024"); // Updated date
     });
 
     it("should handle missing dates gracefully", () => {

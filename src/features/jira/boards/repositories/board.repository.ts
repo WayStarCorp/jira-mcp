@@ -1,5 +1,8 @@
 import { logger } from "@core/logging";
-import type { HttpClient } from "@features/jira/client/http/jira.http.types";
+import type {
+  HttpClient,
+  JiraQueryParamValue,
+} from "@features/jira/client/http/jira.http.types";
 import type { Board, BoardConfiguration, GetBoardsOptions } from "./../models";
 
 /**
@@ -27,8 +30,7 @@ export class BoardRepositoryImpl implements BoardRepository {
   async getBoards(options?: GetBoardsOptions): Promise<Board[]> {
     this.logger.debug("Getting boards", { prefix: "JIRA:BoardRepository" });
 
-    const queryParams: Record<string, string | number | boolean | undefined> =
-      {};
+    const queryParams: Record<string, JiraQueryParamValue> = {};
 
     if (options?.startAt) {
       queryParams.startAt = options.startAt;
@@ -82,6 +84,7 @@ export class BoardRepositoryImpl implements BoardRepository {
       endpoint: "board",
       method: "GET",
       queryParams,
+      jiraApi: "agile",
     });
 
     return response.values;
@@ -98,6 +101,7 @@ export class BoardRepositoryImpl implements BoardRepository {
     return this.httpClient.sendRequest<Board>({
       endpoint: `board/${boardId}`,
       method: "GET",
+      jiraApi: "agile",
     });
   }
 
@@ -112,6 +116,7 @@ export class BoardRepositoryImpl implements BoardRepository {
     return this.httpClient.sendRequest<BoardConfiguration>({
       endpoint: `board/${boardId}/configuration`,
       method: "GET",
+      jiraApi: "agile",
     });
   }
 }

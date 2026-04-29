@@ -4,11 +4,17 @@
  * Handles URL construction with proper slash handling and query parameters
  */
 
+import type {
+  JiraQueryParamValue,
+  JiraRestApiFamily,
+} from "../jira.http.types";
+
 /**
  * Utility class for building JIRA API URLs
  */
 export class JiraUrlBuilder {
   private readonly baseUrl: string;
+  private readonly agileBaseUrl: string;
 
   /**
    * Create a new URL builder with the base URL
@@ -16,7 +22,9 @@ export class JiraUrlBuilder {
    * @param hostUrl - The JIRA host URL
    */
   constructor(hostUrl: string) {
-    this.baseUrl = this.buildBaseUrl(hostUrl);
+    const normalizedHostUrl = this.normalizeHostUrl(hostUrl);
+    this.baseUrl = `${normalizedHostUrl}rest/api/3`;
+    this.agileBaseUrl = `${normalizedHostUrl}rest/agile/1.0`;
   }
 
   /**
@@ -24,13 +32,15 @@ export class JiraUrlBuilder {
    *
    * @param endpoint - The API endpoint path
    * @param queryParams - Optional query parameters
+   * @param jiraApi - REST API family (`platform` or `agile`)
    * @returns The complete URL
    */
   public buildUrl(
     endpoint: string,
-    queryParams?: Record<string, string | number | boolean | undefined>,
+    queryParams?: Record<string, JiraQueryParamValue>,
+    jiraApi: JiraRestApiFamily = "platform",
   ): string {
-    const url = this.buildEndpointUrl(endpoint);
+    const url = this.buildEndpointUrl(endpoint, jiraApi);
     return this.appendQueryParams(url, queryParams);
   }
 
@@ -44,14 +54,10 @@ export class JiraUrlBuilder {
   }
 
   /**
-   * Build the base URL from host URL
-   *
-   * @param hostUrl - The JIRA host URL
-   * @returns The base URL with proper formatting
+   * Get the Agile REST API base URL (`/rest/agile/1.0`), without trailing slash.
    */
-  private buildBaseUrl(hostUrl: string): string {
-    const normalizedHostUrl = this.normalizeHostUrl(hostUrl);
-    return `${normalizedHostUrl}rest/api/3`;
+  public getAgileBaseUrl(): string {
+    return this.agileBaseUrl;
   }
 
   /**
@@ -68,11 +74,16 @@ export class JiraUrlBuilder {
    * Build URL for a specific endpoint
    *
    * @param endpoint - The API endpoint
+   * @param jiraApi - REST API family
    * @returns URL with endpoint appended
    */
-  private buildEndpointUrl(endpoint: string): string {
+  private buildEndpointUrl(
+    endpoint: string,
+    jiraApi: JiraRestApiFamily,
+  ): string {
     const cleanEndpoint = this.normalizeEndpoint(endpoint);
-    const cleanBaseUrl = this.normalizeBaseUrl();
+    const rawBase = jiraApi === "agile" ? this.agileBaseUrl : this.baseUrl;
+    const cleanBaseUrl = this.stripTrailingSlash(rawBase);
     return `${cleanBaseUrl}/${cleanEndpoint}`;
   }
 
@@ -91,10 +102,8 @@ export class JiraUrlBuilder {
    *
    * @returns Base URL without trailing slash
    */
-  private normalizeBaseUrl(): string {
-    return this.baseUrl.endsWith("/")
-      ? this.baseUrl.slice(0, -1)
-      : this.baseUrl;
+  private stripTrailingSlash(url: string): string {
+    return url.endsWith("/") ? url.slice(0, -1) : url;
   }
 
   /**
@@ -106,7 +115,7 @@ export class JiraUrlBuilder {
    */
   private appendQueryParams(
     url: string,
-    queryParams?: Record<string, string | number | boolean | undefined>,
+    queryParams?: Record<string, JiraQueryParamValue>,
   ): string {
     if (!queryParams || Object.keys(queryParams).length === 0) {
       return url;
@@ -125,7 +134,7 @@ export class JiraUrlBuilder {
    * @returns URLSearchParams instance
    */
   private buildQueryParams(
-    queryParams: Record<string, string | number | boolean | undefined>,
+    queryParams: Record<string, JiraQueryParamValue>,
   ): URLSearchParams {
     const params = new URLSearchParams();
 

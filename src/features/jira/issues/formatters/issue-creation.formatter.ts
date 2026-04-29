@@ -5,6 +5,10 @@
  * direct links, and next action guidance
  */
 import type { Issue } from "@features/jira/issues/models/issue.models";
+import {
+  type ADFNode,
+  parseADF,
+} from "@features/jira/shared/parsers/adf.parser";
 
 /**
  * Formatter for issue creation responses
@@ -121,7 +125,7 @@ ${this.formatAdditionalDetails(createdIssue)}
     // Add description if available
     if (issue.fields?.description) {
       const description = this.truncateDescription(
-        String(issue.fields.description),
+        this.formatDescription(issue.fields.description),
       );
       details.push(`**Description:** ${description}`);
     }
@@ -148,12 +152,15 @@ ${this.formatAdditionalDetails(createdIssue)}
     }
 
     // Add story points if available (common field)
-    if (issue.fields?.customfield_10004) {
-      details.push(`**Story Points:** ${issue.fields.customfield_10004}`);
+    const storyPoints = issue.fields?.customfield_10016;
+    if (typeof storyPoints === "number" || typeof storyPoints === "string") {
+      details.push(`**Story Points:** ${storyPoints}`);
     }
 
     return details.length > 0
-      ? `\n📝 **Additional Details:**\n${details.map((d) => `- ${d}`).join("\n")}\n`
+      ? `\n📝 **Additional Details:**\n${details
+          .map((detail) => `- ${detail}`)
+          .join("\n")}\n`
       : "";
   }
 
@@ -166,5 +173,19 @@ ${this.formatAdditionalDetails(createdIssue)}
     }
 
     return `${description.substring(0, maxLength)}...`;
+  }
+
+  /**
+   * Convert description content into a displayable string.
+   */
+  private formatDescription(description: unknown): string {
+    if (typeof description === "string") {
+      return description;
+    }
+
+    const parsedDescription = parseADF(
+      description as string | ADFNode | null | undefined,
+    );
+    return parsedDescription || String(description);
   }
 }

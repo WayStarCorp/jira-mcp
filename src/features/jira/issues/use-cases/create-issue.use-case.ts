@@ -32,11 +32,14 @@ export const createIssueParamsSchema = z.object({
   issueType: z
     .string()
     .min(1, "Issue type is required")
-    .max(50, "Issue type name too long"),
+    .max(50, "Issue type name too long")
+    .optional(),
 
   // Optional core fields
   description: z
     .string()
+    .trim()
+    .min(1, "Description is required")
     .max(32767, "Description too long (max 32,767 characters)")
     .optional(),
 
@@ -149,7 +152,7 @@ export function transformToCreateRequest(
         ? ensureADFFormat(params.description)
         : undefined,
       issuetype: {
-        name: params.issueType,
+        name: params.issueType || "Task",
       },
       priority: params.priority ? { name: params.priority } : undefined,
       assignee: params.assignee ? { accountId: params.assignee } : undefined,
@@ -171,15 +174,9 @@ export function transformToCreateRequest(
 }
 
 /**
- * Request interface for creating an issue with validation
+ * Request type for creating an issue with validation
  */
-export interface CreateIssueUseCaseRequest {
-  projectKey: string;
-  summary: string;
-  issueType?: string;
-  description?: string;
-  customFields?: Record<string, unknown>;
-}
+export type CreateIssueUseCaseRequest = z.input<typeof createIssueParamsSchema>;
 
 /**
  * UseCase interface for issue creation with comprehensive validation
@@ -314,29 +311,38 @@ export class CreateIssueUseCaseImpl implements CreateIssueUseCase {
   private buildCreateIssueRequest(
     request: CreateIssueUseCaseRequest,
   ): CreateIssueRequest {
-    const fields: CreateIssueRequest["fields"] = {
-      project: {
-        key: request.projectKey,
-      },
-      summary: request.summary,
-      issuetype: {
-        name: request.issueType || "Task",
-      },
-    };
+    const issueData = transformToCreateRequest(request);
 
-    // Convert description to ADF format if provided
-    if (request.description) {
-      const adfDescription = ensureADFFormat(request.description);
-      if (adfDescription) {
-        fields.description = adfDescription;
+    if (request.customFields) {
+      for (const [fieldId, value] of Object.entries(request.customFields)) {
+        if (fieldId === "customfield_10016") {
+          if (request.storyPoints === undefined && typeof value === "number") {
+            issueData.fields[fieldId] = value;
+          }
+          continue;
+        }
+
+        if (this.isAllowedCustomFieldKey(fieldId)) {
+          issueData.fields[fieldId] = value;
+        }
       }
     }
 
-    // Add custom fields if provided
-    if (request.customFields) {
-      Object.assign(fields, request.customFields);
+    return issueData;
+  }
+
+  /**
+   * Allow only Jira custom field IDs and reject prototype-pollution keys.
+   */
+  private isAllowedCustomFieldKey(fieldId: string): boolean {
+    if (
+      fieldId === "__proto__" ||
+      fieldId === "constructor" ||
+      fieldId === "prototype"
+    ) {
+      return false;
     }
 
-    return { fields };
+    return fieldId.startsWith("customfield_");
   }
 }

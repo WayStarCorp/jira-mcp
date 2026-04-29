@@ -14,6 +14,7 @@ import {
 } from "@features/jira/client/errors";
 import { IssueUpdateFormatter } from "@features/jira/issues/formatters/issue-update.formatter";
 import {
+  type ResolveCustomFieldsUseCase,
   type UpdateIssueParams,
   type UpdateIssueUseCase,
   type UpdateIssueUseCaseRequest,
@@ -38,7 +39,10 @@ export class UpdateIssueHandler extends BaseToolHandler<
    *
    * @param updateIssueUseCase - Use case for updating issues with validation
    */
-  constructor(private readonly updateIssueUseCase: UpdateIssueUseCase) {
+  constructor(
+    private readonly updateIssueUseCase: UpdateIssueUseCase,
+    private readonly resolveCustomFieldsUseCase?: ResolveCustomFieldsUseCase,
+  ) {
     super("JIRA", "Update Issue");
     this.formatter = new IssueUpdateFormatter();
   }
@@ -58,7 +62,7 @@ export class UpdateIssueHandler extends BaseToolHandler<
 
       // Step 2: Map parameters to use case request
       const useCaseRequest: UpdateIssueUseCaseRequest =
-        this.mapToUseCaseRequest(validatedParams);
+        await this.mapToUseCaseRequest(validatedParams);
 
       // Step 3: Execute the use case
       this.logger.debug("Delegating to UpdateIssueUseCase", {
@@ -99,9 +103,9 @@ export class UpdateIssueHandler extends BaseToolHandler<
    * Map handler parameters to use case request
    * Transforms update parameters into use case format with proper field mapping
    */
-  private mapToUseCaseRequest(
+  private async mapToUseCaseRequest(
     params: UpdateIssueParams,
-  ): UpdateIssueUseCaseRequest {
+  ): Promise<UpdateIssueUseCaseRequest> {
     const useCaseRequest: UpdateIssueUseCaseRequest = {
       issueKey: params.issueKey,
       notifyUsers: params.notifyUsers,
@@ -115,6 +119,9 @@ export class UpdateIssueHandler extends BaseToolHandler<
 
     // Map array operations (labels and components)
     this.mapArrayOperations(params, useCaseRequest);
+
+    // Map custom fields after all standard fields to keep the merge explicit
+    await this.mapCustomFields(params, useCaseRequest);
 
     return useCaseRequest;
   }
@@ -138,7 +145,7 @@ export class UpdateIssueHandler extends BaseToolHandler<
         useCaseRequest.fields.summary = params.summary;
       }
 
-      if (params.description) {
+      if (params.description !== undefined) {
         // Convert description to ADF format
         const adfDescription = ensureADFFormat(params.description);
         if (adfDescription) {
@@ -193,11 +200,7 @@ export class UpdateIssueHandler extends BaseToolHandler<
     params: UpdateIssueParams,
     useCaseRequest: UpdateIssueUseCaseRequest,
   ): void {
-    if (
-      params.labels &&
-      params.labels.operation === "set" &&
-      useCaseRequest.fields
-    ) {
+    if (params?.labels?.operation === "set" && useCaseRequest?.fields) {
       useCaseRequest.fields.labels = params.labels.values;
     }
   }
@@ -209,15 +212,116 @@ export class UpdateIssueHandler extends BaseToolHandler<
     params: UpdateIssueParams,
     useCaseRequest: UpdateIssueUseCaseRequest,
   ): void {
-    if (
-      params.components &&
-      params.components.operation === "set" &&
-      useCaseRequest.fields
-    ) {
+    if (params?.components?.operation === "set" && useCaseRequest?.fields) {
       useCaseRequest.fields.components = params.components.values.map(
         (name) => ({ name }),
       );
     }
+  }
+
+  /**
+   * Map Jira custom fields
+   */
+  private async mapCustomFields(
+    params: UpdateIssueParams,
+    useCaseRequest: UpdateIssueUseCaseRequest,
+  ): Promise<void> {
+    if (!params.customFields || Object.keys(params.customFields).length === 0) {
+      return;
+    }
+
+    if (
+      !this.resolveCustomFieldsUseCase &&
+      this.hasCustomFieldsByName(params.customFields)
+    ) {
+      throw JiraApiError.withStatusCode(
+        "Custom fields by name require resolveCustomFieldsUseCase to be configured. Pass field IDs (customfield_XXXXX) or use jira_get_custom_field_metadata to resolve names.",
+        400,
+        {
+          issueKey: params.issueKey,
+        },
+      );
+    }
+
+    useCaseRequest.fields = useCaseRequest.fields || {};
+    const resolvedCustomFields = this.resolveCustomFieldsUseCase
+      ? await this.resolveCustomFieldsUseCase.execute({
+          issueKey: params.issueKey,
+          customFields: params.customFields,
+        })
+      : this.filterCustomFields(params.customFields);
+
+    Object.assign(useCaseRequest.fields, resolvedCustomFields);
+  }
+
+  /**
+   * Keep only safe Jira custom field IDs when the resolver is unavailable.
+   */
+  private filterCustomFields(
+    customFields: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const filtered: Record<string, unknown> = {};
+
+    for (const [fieldId, value] of Object.entries(customFields)) {
+      if (this.isAllowedCustomFieldKey(fieldId)) {
+        filtered[fieldId] = value;
+      }
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Detect whether custom fields are provided by name rather than Jira field id.
+   */
+  private hasCustomFieldsByName(
+    customFields: Record<string, unknown>,
+  ): boolean {
+    return Object.keys(customFields).some(
+      (fieldId) =>
+        !this.isAllowedCustomFieldKey(fieldId) &&
+        !this.isStandardIssueFieldKey(fieldId),
+    );
+  }
+
+  /**
+   * Allow only Jira custom field IDs and reject prototype-pollution keys.
+   */
+  private isAllowedCustomFieldKey(fieldId: string): boolean {
+    if (
+      fieldId === "__proto__" ||
+      fieldId === "constructor" ||
+      fieldId === "prototype"
+    ) {
+      return false;
+    }
+
+    return fieldId.startsWith("customfield_");
+  }
+
+  /**
+   * Allow common built-in Jira issue field keys to continue being ignored.
+   */
+  private isStandardIssueFieldKey(fieldId: string): boolean {
+    return new Set([
+      "summary",
+      "description",
+      "priority",
+      "assignee",
+      "reporter",
+      "duedate",
+      "environment",
+      "labels",
+      "components",
+      "fixVersions",
+      "affectsVersions",
+      "timeEstimate",
+      "timeSpent",
+      "parentIssueKey",
+      "status",
+      "worklog",
+      "transition",
+    ]).has(fieldId);
   }
 
   /**

@@ -12,6 +12,7 @@ export interface IssueRepository {
   getIssue(issueKey: string, fields?: string[]): Promise<Issue>;
   createIssue(request: CreateIssueRequest): Promise<Issue>;
   updateIssue(issueKey: string, updates: IssueUpdateRequest): Promise<Issue>;
+  assignIssue(issueKey: string, accountId: string): Promise<Issue>;
   getIssueWithResponse(issueKey: string): Promise<IssueResponse>;
 }
 
@@ -86,6 +87,25 @@ export class IssueRepositoryImpl implements IssueRepository {
     });
 
     // Return the updated issue by fetching it
+    return this.getIssue(issueKey);
+  }
+
+  /**
+   * Assign an issue to a specific user
+   */
+  async assignIssue(issueKey: string, accountId: string): Promise<Issue> {
+    this.logger.debug(`Assigning issue: ${issueKey}`, {
+      prefix: "JIRA:IssueRepository",
+    });
+
+    await this.httpClient.sendRequest<void>({
+      endpoint: `issue/${issueKey}/assignee`,
+      method: "PUT",
+      body: {
+        accountId,
+      },
+    });
+
     return this.getIssue(issueKey);
   }
 
