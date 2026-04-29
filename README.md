@@ -190,10 +190,10 @@ JIRA_API_TOKEN=your-jira-api-token-here
 
 ### Sprints
 
-| Tool                        | Description                                                                           | Parameters                      | Returns                        |
-| --------------------------- | ------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------ |
-| `jira_get_sprints`          | Retrieve sprint information for a board                                               | See sprint parameters           | Markdown-formatted sprint list |
-| `jira_add_issues_to_sprint` | Add one or more issues to a sprint (by `sprintId` **or** active sprint via `boardId`) | See sprint-add parameters below | Markdown-formatted result      |
+| Tool                        | Description                                                                                        | Parameters                      | Returns                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| `jira_get_sprints`          | Retrieve sprint information for a board, or from accessible Scrum boards when `boardId` is omitted | See sprint parameters           | Markdown-formatted sprint list |
+| `jira_add_issues_to_sprint` | Add one or more issues to a sprint (by `sprintId` **or** active sprint via `boardId`)              | See sprint-add parameters below | Markdown-formatted result      |
 
 ### Time Tracking
 

@@ -13,7 +13,7 @@ import {
 import { SprintListFormatter } from "@features/jira/sprints/formatters/sprint-list.formatter";
 import type { GetSprintsUseCase } from "../use-cases/get-sprints.use-case";
 import type {
-  GetSprintsParams,
+  GetSprintsParamsInput,
   SprintValidator,
 } from "../validators/sprint.validator";
 
@@ -22,10 +22,10 @@ import type {
  * Provides comprehensive sprint listing with filtering capabilities
  */
 export class GetSprintsHandler extends BaseToolHandler<
-  GetSprintsParams,
+  GetSprintsParamsInput,
   string
 > {
-  private sprintListFormatter: SprintListFormatter;
+  private readonly sprintListFormatter: SprintListFormatter;
 
   /**
    * Create a new GetSprintsHandler with use case and validator
@@ -47,18 +47,19 @@ export class GetSprintsHandler extends BaseToolHandler<
    *
    * @param params - Parameters for sprint retrieval
    */
-  protected async execute(params: GetSprintsParams): Promise<string> {
+  protected async execute(params: GetSprintsParamsInput): Promise<string> {
     try {
       // Step 1: Validate parameters
       const validatedParams =
         this.sprintValidator.validateGetSprintsParams(params);
-      this.logger.info(
-        `Getting JIRA sprints for board: ${validatedParams.boardId}`,
-      );
+      const targetDescription = validatedParams.boardId
+        ? `board ${validatedParams.boardId}`
+        : "accessible Scrum boards";
+      this.logger.info(`Getting JIRA sprints for ${targetDescription}`);
 
       // Step 2: Get sprints using use case
       this.logger.debug("Retrieving sprints with params:", {
-        boardId: validatedParams.boardId,
+        ...(validatedParams.boardId ? { boardId: validatedParams.boardId } : {}),
         hasState: !!validatedParams.state,
         maxResults: validatedParams.maxResults,
       });
@@ -84,7 +85,10 @@ export class GetSprintsHandler extends BaseToolHandler<
   /**
    * Enhance error messages for better user guidance
    */
-  private enhanceError(error: unknown, params?: GetSprintsParams): Error {
+  private enhanceError(
+    error: unknown,
+    params?: GetSprintsParamsInput,
+  ): Error {
     const boardContext = params?.boardId ? ` for board ${params.boardId}` : "";
 
     if (error instanceof JiraNotFoundError) {

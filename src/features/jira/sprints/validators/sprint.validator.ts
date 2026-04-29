@@ -32,9 +32,14 @@ export const getSprintsParamsSchema = z.object({
 });
 
 /**
- * Type for get sprints parameters
+ * Type for get sprints parameters input
  */
-export type GetSprintsParams = z.input<typeof getSprintsParamsSchema>;
+export type GetSprintsParamsInput = z.input<typeof getSprintsParamsSchema>;
+
+/**
+ * Type for get sprints parameters after validation
+ */
+export type GetSprintsParams = z.output<typeof getSprintsParamsSchema>;
 
 /**
  * Schema for getting single sprint parameters
@@ -87,7 +92,7 @@ export interface SprintValidator {
    * @param params - Parameters to validate
    * @returns Validated parameters
    */
-  validateGetSprintsParams(params: GetSprintsParams): GetSprintsParams;
+  validateGetSprintsParams(params: GetSprintsParamsInput): GetSprintsParams;
 
   /**
    * Validate get sprint parameters
@@ -116,7 +121,7 @@ export class SprintValidatorImpl implements SprintValidator {
    * @returns Validated parameters
    * @throws SprintParamsValidationError - If validation fails
    */
-  public validateGetSprintsParams(params: GetSprintsParams): GetSprintsParams {
+  public validateGetSprintsParams(params: GetSprintsParamsInput): GetSprintsParams {
     const result = getSprintsParamsSchema.safeParse(params);
 
     if (!result.success) {

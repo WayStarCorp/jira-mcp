@@ -14,6 +14,7 @@ import { SprintState } from "@features/jira/sprints/models";
 import type { GetSprintsUseCase } from "@features/jira/sprints/use-cases";
 import type {
   GetSprintsParams,
+  GetSprintsParamsInput,
   SprintValidator,
 } from "@features/jira/sprints/validators";
 import { mockFactory } from "@test/mocks/jira-mock-factory";
@@ -32,7 +33,11 @@ describe("GetSprintsHandler", () => {
   beforeEach(() => {
     // Create mock functions
     executeMock = mock(() => Promise.resolve([]));
-    validateMock = mock((params: GetSprintsParams) => params);
+    validateMock = mock((params: GetSprintsParamsInput) => ({
+      startAt: 0,
+      maxResults: 50,
+      ...params,
+    }));
 
     // Create use case and validator with mocks
     const mockUseCase: GetSprintsUseCase = {

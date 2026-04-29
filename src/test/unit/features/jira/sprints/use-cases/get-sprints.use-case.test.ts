@@ -92,4 +92,40 @@ describe("GetSprintsUseCaseImpl", () => {
       maxResults: 50,
     });
   });
+
+  it("returns an empty list when no scrum boards are available", async () => {
+    boardRepository.getBoards.mockResolvedValue([]);
+
+    const result = await useCase.execute({
+      state: SprintState.ACTIVE,
+      startAt: 0,
+      maxResults: 50,
+    });
+
+    expect(result).toEqual([]);
+    expect(sprintRepository.getSprints).not.toHaveBeenCalled();
+  });
+
+  it("fails with a clear error when a board id is not numeric", async () => {
+    boardRepository.getBoards.mockResolvedValue([
+      {
+        id: "not-a-number",
+        name: "Broken Board",
+        type: BoardType.SCRUM,
+        self: "",
+      },
+    ]);
+
+    await expect(
+      useCase.execute({
+        state: SprintState.ACTIVE,
+        startAt: 0,
+        maxResults: 50,
+      }),
+    ).rejects.toThrow(
+      "Failed to get sprints: Invalid board id from Jira: not-a-number",
+    );
+
+    expect(sprintRepository.getSprints).not.toHaveBeenCalled();
+  });
 });

@@ -22,7 +22,8 @@ export function createSprintToolsConfig(tools: {
   return [
     {
       name: "jira_get_sprints",
-      description: "Get all sprints for a specific JIRA board with filtering by state",
+      description:
+        "Get JIRA sprints for a specific board, or from accessible Scrum boards when boardId is omitted, with optional state filtering",
       params: getSprintsParamsSchema.shape,
       handler: tools.jira_get_sprints.handle.bind(tools.jira_get_sprints),
     },

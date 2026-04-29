@@ -10,10 +10,18 @@ import type { HttpRequestOptions } from "@features/jira/client/http/jira.http.ty
 
 // Mock the global fetch function
 const mockFetch = mock();
-Object.defineProperty(global, "fetch", {
+Object.defineProperty(globalThis, "fetch", {
   value: mockFetch,
   writable: true,
 });
+
+function createJsonResponse<T>(data: T, status = 200) {
+  return {
+    ok: true,
+    status,
+    text: mock(() => Promise.resolve(JSON.stringify(data))),
+  };
+}
 
 describe("JiraHttpClient", () => {
   const mockConfig = {
@@ -72,11 +80,7 @@ describe("JiraHttpClient", () => {
     describe("successful requests", () => {
       it("should send GET request successfully", async () => {
         const mockResponseData = { id: "TEST-123", summary: "Test issue" };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -107,11 +111,7 @@ describe("JiraHttpClient", () => {
           description: "Test description",
         };
         const mockResponseData = { id: "TEST-124", key: "TEST-124" };
-        const mockResponse = {
-          ok: true,
-          status: 201,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData, 201);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -135,11 +135,7 @@ describe("JiraHttpClient", () => {
 
       it("should send request with query parameters", async () => {
         const mockResponseData = { issues: [], total: 0 };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -164,11 +160,7 @@ describe("JiraHttpClient", () => {
 
       it("should send request with custom headers", async () => {
         const mockResponseData = { success: true };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -346,11 +338,7 @@ describe("JiraHttpClient", () => {
     describe("request logging", () => {
       it("should log request details", async () => {
         const mockResponseData = { success: true };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -381,11 +369,7 @@ describe("JiraHttpClient", () => {
       for (const { method, hasBody } of testCases) {
         it(`should handle ${method} requests`, async () => {
           const mockResponseData = { success: true };
-          const mockResponse = {
-            ok: true,
-            status: 200,
-            json: mock(() => Promise.resolve(mockResponseData)),
-          };
+          const mockResponse = createJsonResponse(mockResponseData);
 
           mockFetch.mockResolvedValue(mockResponse);
 
@@ -411,11 +395,7 @@ describe("JiraHttpClient", () => {
     describe("edge cases", () => {
       it("should handle empty endpoint", async () => {
         const mockResponseData = { success: true };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -435,11 +415,7 @@ describe("JiraHttpClient", () => {
 
       it("should handle endpoint with leading slash", async () => {
         const mockResponseData = { success: true };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -459,11 +435,7 @@ describe("JiraHttpClient", () => {
 
       it("should handle undefined query parameters", async () => {
         const mockResponseData = { success: true };
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          json: mock(() => Promise.resolve(mockResponseData)),
-        };
+        const mockResponse = createJsonResponse(mockResponseData);
 
         mockFetch.mockResolvedValue(mockResponse);
 
@@ -499,11 +471,7 @@ describe("JiraHttpClient", () => {
   describe("authentication", () => {
     it("should include correct authentication header", async () => {
       const mockResponseData = { success: true };
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: mock(() => Promise.resolve(mockResponseData)),
-      };
+      const mockResponse = createJsonResponse(mockResponseData);
 
       mockFetch.mockResolvedValue(mockResponse);
 

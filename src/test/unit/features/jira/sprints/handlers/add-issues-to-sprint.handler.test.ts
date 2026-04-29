@@ -30,7 +30,7 @@ describe("AddIssuesToSprintHandler", () => {
         issueKeys: ["PROJ-100"],
       }),
     );
-    validateMock = mock((params: AddIssuesToSprintParams) => params);
+    validateMock = mock((params: unknown) => params as never);
 
     const mockUseCase: AddIssuesToSprintUseCase = {
       execute: executeMock,

@@ -85,13 +85,19 @@ export class GetSprintsUseCaseImpl implements GetSprintsUseCase {
       maxResults: 50,
     });
     const sprintGroups = await Promise.all(
-      boards.map((board) =>
-        this.sprintRepository.getSprints(Number(board.id), {
+      boards.map((board) => {
+        const boardId = Number(board.id);
+
+        if (!Number.isInteger(boardId)) {
+          throw new TypeError(`Invalid board id from Jira: ${board.id}`);
+        }
+
+        return this.sprintRepository.getSprints(boardId, {
           state: request.state,
           startAt: request.startAt,
           maxResults: request.maxResults,
-        }),
-      ),
+        });
+      }),
     );
 
     return sprintGroups.flat();
