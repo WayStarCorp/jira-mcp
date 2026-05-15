@@ -108,4 +108,20 @@ describe("EpicInfoFormatter", () => {
 
     expect(out).not.toContain("Classic Epic Link JQL was not merged");
   });
+
+  it("omits Epic Link value line when value is empty or whitespace-only", () => {
+    expect(
+      formatter.format(minimalResult({ epicLinkValue: "" })),
+    ).not.toContain("Epic Link value on issue");
+    expect(
+      formatter.format(minimalResult({ epicLinkValue: "   " })),
+    ).not.toContain("Epic Link value on issue");
+  });
+
+  it("includes Epic Link value line when value is non-empty", () => {
+    const out = formatter.format(
+      minimalResult({ epicLinkValue: "PROJ-42" }),
+    );
+    expect(out).toContain("**Epic Link value on issue**: PROJ-42");
+  });
 });

@@ -75,11 +75,11 @@ export class EpicInfoFormatter {
   }
 
   private buildEpicLinkValueLines(epicLinkValue: string | null): string[] {
-    if (epicLinkValue === null) {
+    if (epicLinkValue === null || epicLinkValue.trim() === "") {
       return [];
     }
 
-    return [`**Epic Link value on issue**: ${epicLinkValue ?? "—"}`];
+    return [`**Epic Link value on issue**: ${epicLinkValue}`];
   }
 
   private buildGenericIssueLinkLines(
