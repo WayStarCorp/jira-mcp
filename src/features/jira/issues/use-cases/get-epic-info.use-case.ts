@@ -290,7 +290,7 @@ export class GetEpicInfoUseCaseImpl implements GetEpicInfoUseCase {
 
     return {
       issues: byParent,
-      missingEpicFieldIdForChildren: byParent.length === 0,
+      missingEpicFieldIdForChildren: true,
       listedFromParentOnly: true,
     };
   }

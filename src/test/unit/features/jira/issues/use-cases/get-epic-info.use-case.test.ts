@@ -204,7 +204,7 @@ describe("GetEpicInfoUseCase", () => {
     expect(r.childrenNote).toBeNull();
   });
 
-  test("auto epic children sets childrenNote when parent empty and editmeta probe finds no Epic Link field", async () => {
+  test("auto epic children sets childrenNote when editmeta probe finds no Epic Link field (parent JQL empty)", async () => {
     resolve.mockResolvedValue({
       mode: "parent" as const,
       reason: "auto: parent editable in editmeta",
@@ -252,7 +252,7 @@ describe("GetEpicInfoUseCase", () => {
 
     expect(searchExecute).toHaveBeenCalledTimes(1);
     expect(r.childrenListedFromParentOnly).toBe(true);
-    expect(r.childrenNote).toBeNull();
+    expect(r.childrenNote).toBe(EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID);
     expect(r.children.map((x) => x.key)).toEqual(["C-P ONLY"]);
   });
 

@@ -118,6 +118,7 @@ export class EpicInfoFormatter {
               "*Child issues: listed from **parent hierarchy** only (`parent = epic`); Classic Epic Link JQL was not merged.*",
             ]
           : []),
+        ...(childrenNote ? ["", childrenNote] : []),
         "| Key | Type | Summary | Status | Updated |",
         "| --- | ---- | ------- | ------ | ------- |",
       ];

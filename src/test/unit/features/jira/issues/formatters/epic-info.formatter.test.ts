@@ -1,5 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import type { EpicInfoResult } from "@features/jira/issues/use-cases/get-epic-info.use-case";
+import {
+  EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID,
+  type EpicInfoResult,
+} from "@features/jira/issues/use-cases/get-epic-info.use-case";
 import { EpicInfoFormatter } from "@features/jira/issues/formatters/epic-info.formatter";
 import { createMockIssue } from "@test/mocks/issues/issue-mock-factory";
 import { setupTests } from "@test/utils/test-setup";
@@ -56,6 +59,31 @@ describe("EpicInfoFormatter", () => {
 
     expect(out).toContain("parent hierarchy");
     expect(out).toContain("Classic Epic Link JQL was not merged");
+  });
+
+  it("includes childrenNote under child table when list is non-empty", () => {
+    const out = formatter.format(
+      minimalResult({
+        children: [
+          {
+            id: "2",
+            key: "C-1",
+            self: "https://test.atlassian.net/rest/api/3/issue/2",
+            fields: {
+              summary: "Child",
+              issuetype: { name: "Story" },
+              status: { name: "To Do" },
+              updated: "2024-01-01T10:00:00.000+0000",
+            },
+          },
+        ],
+        childrenListedFromParentOnly: true,
+        childrenNote: EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID,
+      }),
+    );
+
+    expect(out).toContain("parent hierarchy");
+    expect(out).toContain(EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID);
   });
 
   it("omits parent-only line when Epic Link merge was applied", () => {
