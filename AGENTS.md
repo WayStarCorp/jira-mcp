@@ -11,3 +11,6 @@
 ## Learned Workspace Facts
 
 - Репозиторий — MCP для Jira; частые задачи от агентов: переходы по workflow, назначение исполнителей, добавление комментариев к задачам.
+- Спринты: отдельного инструмента «текущий спринт» нет — активный спринт смотрят через `jira_get_sprints` с `state: "active"` (часто после `jira_get_boards` для `boardId`); добавление задач в спринт — `jira_add_issues_to_sprint` с явным `sprintId` из списка спринтов или с одним `boardId`, если на доске ровно один активный спринт.
+- В `jira_update_issue` значение `assignee` — только account id (как ожидает Jira REST API); назначение по человекочитаемому имени — через `jira_assign_issue` с `query` или с уже известным `accountId`.
+- Публикуемый npm-пакет по полю `files` в `package.json` включает только `dist/`, `README.md`, `LICENSE`, `CHANGELOG.md`; `AGENTS.md`, исходники репозитория и тесты в tarball не попадают.

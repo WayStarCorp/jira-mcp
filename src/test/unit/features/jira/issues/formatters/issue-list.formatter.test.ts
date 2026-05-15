@@ -36,10 +36,10 @@ describe("IssueListFormatter", () => {
       expect(result).toContain("# Your Assigned Issues");
       expect(result).toContain("1 issue assigned to you");
       expect(result).toContain(
-        "| Key | Summary | Status | Priority | Updated |",
+        "| Key | Type | Summary | Status | Priority | Updated |",
       );
       expect(result).toContain(
-        "| TEST-123 | Test issue summary | To Do | High | Jan 15, 2024 |",
+        "| TEST-123 | — | Test issue summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -68,10 +68,10 @@ describe("IssueListFormatter", () => {
 
       expect(result).toContain("2 issues assigned to you");
       expect(result).toContain(
-        "| TEST-123 | First issue | To Do | High | Jan 15, 2024 |",
+        "| TEST-123 | — | First issue | To Do | High | Jan 15, 2024 |",
       );
       expect(result).toContain(
-        "| TEST-456 | Second issue | In Progress | Medium | Jan 16, 2024 |",
+        "| TEST-456 | — | Second issue | In Progress | Medium | Jan 16, 2024 |",
       );
     });
 
@@ -89,7 +89,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | To Do | High | Jan 15, 2024 |",
+        "| TEST-123 | — | No Summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -107,7 +107,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | Unknown | High | Jan 15, 2024 |",
+        "| TEST-123 | — | Test issue | Unknown | High | Jan 15, 2024 |",
       );
     });
 
@@ -125,7 +125,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | To Do | None | Jan 15, 2024 |",
+        "| TEST-123 | — | Test issue | To Do | None | Jan 15, 2024 |",
       );
     });
 
@@ -143,7 +143,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | To Do | High | N/A |",
+        "| TEST-123 | — | Test issue | To Do | High | N/A |",
       );
     });
 
@@ -158,7 +158,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | Unknown | None | N/A |",
+        "| TEST-123 | — | No Summary | Unknown | None | N/A |",
       );
     });
 
@@ -173,7 +173,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | Unknown | None | N/A |",
+        "| TEST-123 | — | No Summary | Unknown | None | N/A |",
       );
     });
 
@@ -264,10 +264,10 @@ describe("IssueListFormatter", () => {
 
       expect(result).toContain("10 issues assigned to you");
       expect(result).toContain(
-        "| Key | Summary | Status | Priority | Updated |",
+        "| Key | Type | Summary | Status | Priority | Updated |",
       );
       expect(result).toContain(
-        "| --- | ------- | ------ | -------- | ------- |",
+        "| --- | ---- | ------- | ------ | -------- | ------- |",
       );
 
       // Should have 10 data rows
@@ -297,10 +297,10 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue1, issue2]);
 
       expect(result).toContain(
-        "| TEST-1 | Complete issue | To Do | High | Jan 15, 2024 |",
+        "| TEST-1 | — | Complete issue | To Do | High | Jan 15, 2024 |",
       );
       expect(result).toContain(
-        "| TEST-2 | Partial issue | Unknown | None | N/A |",
+        "| TEST-2 | — | Partial issue | Unknown | None | N/A |",
       );
     });
   });
@@ -320,7 +320,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | No Summary | To Do | High | Jan 15, 2024 |",
+        "| TEST-123 | — | No Summary | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -338,7 +338,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 |     | To Do | High | Jan 15, 2024 |",
+        "| TEST-123 | — |     | To Do | High | Jan 15, 2024 |",
       );
     });
 
@@ -356,7 +356,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | Unknown | High | Jan 15, 2024 |",
+        "| TEST-123 | — | Test issue | Unknown | High | Jan 15, 2024 |",
       );
     });
 
@@ -374,7 +374,7 @@ describe("IssueListFormatter", () => {
       const result = formatter.format([issue]);
 
       expect(result).toContain(
-        "| TEST-123 | Test issue | To Do | None | Jan 15, 2024 |",
+        "| TEST-123 | — | Test issue | To Do | None | Jan 15, 2024 |",
       );
     });
   });

@@ -1,6 +1,6 @@
 {
   "name": "@waystar/jira-mcp",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "MCP server for Jira: issues, transitions, links, comments, worklogs, sprints, and user assignment.",
   "type": "module",
   "main": "dist/index.js",

@@ -56,3 +56,19 @@ export class IssueLinkedFormatter
     ].join("\n");
   }
 }
+
+/**
+ * Confirms deletion of a generic issue link by id.
+ */
+export class IssueUnlinkedFormatter implements StringFormatter<string> {
+  format(linkId: string): string {
+    return [
+      "# Issue link removed",
+      "",
+      `- **linkId**: \`${linkId}\``,
+      "",
+      "This removes a **generic** issue link only. To clear **Epic Link** or **parent** hierarchy, use `jira_remove_issue_epic`.",
+      "",
+    ].join("\n");
+  }
+}

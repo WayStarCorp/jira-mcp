@@ -3,17 +3,11 @@ import type { HttpClient } from "@features/jira/client/http/jira.http.types";
 import type {
   CustomFieldAllowedValue,
   CustomFieldMetadata,
-  CustomFieldSchema,
+  IssueEditMetaField,
 } from "../models/custom-field.models";
 
-interface JiraEditMetaField {
-  key?: string;
-  name?: string;
-  required?: boolean;
-  operations?: string[];
-  schema?: CustomFieldSchema;
+interface JiraEditMetaField extends IssueEditMetaField {
   allowedValues?: CustomFieldAllowedValue[];
-  custom?: boolean;
 }
 
 interface JiraEditMetaResponse {
@@ -25,6 +19,9 @@ interface JiraEditMetaResponse {
  */
 export interface IssueCustomFieldRepository {
   getIssueCustomFieldMetadata(issueKey: string): Promise<CustomFieldMetadata[]>;
+  getIssueEditMetaFields(
+    issueKey: string,
+  ): Promise<Record<string, IssueEditMetaField>>;
 }
 
 /**
@@ -37,10 +34,10 @@ export class IssueCustomFieldRepositoryImpl
 
   constructor(private readonly httpClient: HttpClient) {}
 
-  async getIssueCustomFieldMetadata(
+  async getIssueEditMetaFields(
     issueKey: string,
-  ): Promise<CustomFieldMetadata[]> {
-    this.logger.debug(`Getting custom field metadata for issue: ${issueKey}`, {
+  ): Promise<Record<string, IssueEditMetaField>> {
+    this.logger.debug(`Getting edit meta fields for issue: ${issueKey}`, {
       prefix: "JIRA:IssueCustomFieldRepository",
     });
 
@@ -49,7 +46,19 @@ export class IssueCustomFieldRepositoryImpl
       method: "GET",
     });
 
-    const metadata = Object.entries(response.fields ?? {})
+    return response.fields ?? {};
+  }
+
+  async getIssueCustomFieldMetadata(
+    issueKey: string,
+  ): Promise<CustomFieldMetadata[]> {
+    this.logger.debug(`Getting custom field metadata for issue: ${issueKey}`, {
+      prefix: "JIRA:IssueCustomFieldRepository",
+    });
+
+    const fields = await this.getIssueEditMetaFields(issueKey);
+
+    const metadata = Object.entries(fields)
       .filter(([fieldId, field]) => this.isCustomField(fieldId, field))
       .map(([fieldId, field]) => this.toCustomFieldMetadata(fieldId, field));
 

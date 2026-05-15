@@ -23,17 +23,19 @@ export class IssueListFormatter implements Formatter<Issue[], string> {
     markdown += `${issueCount} ${issueText} assigned to you\n\n`;
 
     // Create a table
-    markdown += "| Key | Summary | Status | Priority | Updated |\n";
-    markdown += "| --- | ------- | ------ | -------- | ------- |\n";
+    markdown += "| Key | Type | Summary | Status | Priority | Updated |\n";
+    markdown += "| --- | ---- | ------- | ------ | -------- | ------- |\n";
 
     for (const { key, fields: issueFields } of issues) {
-      const { summary, status, priority, updated } = issueFields ?? {};
+      const { summary, status, priority, updated, issuetype } =
+        issueFields ?? {};
       const summaryText = summary || "No Summary";
+      const typeName = issuetype?.name || "—";
       const statusName = status?.name || "Unknown";
       const priorityName = priority?.name || "None";
       const updatedDisplay = updated ? this.formatDate(updated) : "N/A";
 
-      markdown += `| ${key} | ${summaryText} | ${statusName} | ${priorityName} | ${updatedDisplay} |\n`;
+      markdown += `| ${key} | ${typeName} | ${summaryText} | ${statusName} | ${priorityName} | ${updatedDisplay} |\n`;
     }
 
     return markdown;

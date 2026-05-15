@@ -75,6 +75,7 @@ export function createMockIssueCommentRepository() {
 export function createMockIssueCustomFieldRepository() {
   return {
     getIssueCustomFieldMetadata: mock(),
+    getIssueEditMetaFields: mock(),
   } as IssueCustomFieldRepository &
     Record<keyof IssueCustomFieldRepository, ReturnType<typeof mock>>;
 }
@@ -86,6 +87,7 @@ export function createMockIssueLinkRepository() {
   return {
     getIssueLinkTypes: mock(),
     linkIssues: mock(),
+    deleteIssueLink: mock(),
   } as IssueLinkRepository &
     Record<keyof IssueLinkRepository, ReturnType<typeof mock>>;
 }

@@ -11,18 +11,23 @@ import type { JiraDependencies } from "./dependency.factory";
 import {
   AddIssueCommentHandler,
   AddWorklogHandler,
+  ChangeIssueTypeHandler,
   CreateIssueHandler,
   DeleteWorklogHandler,
   GetAssignedIssuesHandler,
   GetCustomFieldMetadataHandler,
+  GetEpicInfoHandler,
   GetIssueCommentsHandler,
   GetIssueHandler,
   GetIssueLinkTypesHandler,
   GetIssueTransitionsHandler,
   GetWorklogsHandler,
   LinkIssuesHandler,
+  RemoveIssueEpicHandler,
   SearchIssuesHandler,
+  SetIssueEpicHandler,
   TransitionIssueHandler,
+  UnlinkIssueHandler,
   UpdateIssueHandler,
   UpdateWorklogHandler,
 } from "../../issues";
@@ -129,6 +134,26 @@ function createIssueHandlers(dependencies: JiraDependencies) {
     dependencies.searchIssuesUseCase,
   );
 
+  const getEpicInfoHandler = new GetEpicInfoHandler(
+    dependencies.getEpicInfoUseCase,
+  );
+
+  const setIssueEpicHandler = new SetIssueEpicHandler(
+    dependencies.setIssueEpicUseCase,
+  );
+
+  const removeIssueEpicHandler = new RemoveIssueEpicHandler(
+    dependencies.removeIssueEpicUseCase,
+  );
+
+  const changeIssueTypeHandler = new ChangeIssueTypeHandler(
+    dependencies.changeIssueTypeUseCase,
+  );
+
+  const unlinkIssueHandler = new UnlinkIssueHandler(
+    dependencies.unlinkIssueUseCase,
+  );
+
   return {
     jira_get_issue: {
       handle: async (args: unknown) => getIssueHandler.handle(args),
@@ -163,6 +188,21 @@ function createIssueHandlers(dependencies: JiraDependencies) {
     },
     jira_link_issues: {
       handle: async (args: unknown) => linkIssuesHandler.handle(args),
+    },
+    jira_get_epic_info: {
+      handle: async (args: unknown) => getEpicInfoHandler.handle(args),
+    },
+    jira_set_issue_epic: {
+      handle: async (args: unknown) => setIssueEpicHandler.handle(args),
+    },
+    jira_remove_issue_epic: {
+      handle: async (args: unknown) => removeIssueEpicHandler.handle(args),
+    },
+    jira_change_issue_type: {
+      handle: async (args: unknown) => changeIssueTypeHandler.handle(args),
+    },
+    jira_unlink_issue: {
+      handle: async (args: unknown) => unlinkIssueHandler.handle(args),
     },
     jira_search_issues: {
       handle: async (args: unknown) => searchIssuesHandler.handle(args),

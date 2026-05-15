@@ -5,23 +5,15 @@
  */
 
 // Base error types
-import {
-  JiraApiError,
+import { JiraApiError } from "./base.error";
+export {
   JiraConfigError,
   JiraErrorCode,
   type JiraErrorResponse,
 } from "./base.error";
-export { JiraApiError, JiraConfigError, JiraErrorCode, type JiraErrorResponse };
+export { JiraApiError };
 
 // HTTP errors
-import {
-  JiraBadRequestError,
-  JiraNetworkError,
-  JiraNotFoundError,
-  JiraPermissionError,
-  JiraRateLimitError,
-  JiraServerError,
-} from "./http.error";
 export {
   JiraBadRequestError,
   JiraNetworkError,
@@ -29,14 +21,14 @@ export {
   JiraPermissionError,
   JiraRateLimitError,
   JiraServerError,
-};
+} from "./http.error";
 
 // Authentication errors
-import { JiraAuthenticationError } from "./auth.error";
-export { JiraAuthenticationError };
+export { JiraAuthenticationError } from "./auth.error";
 
-// Import domain-specific validation errors
-import {
+// For backward compatibility, we re-export all validator errors
+export {
+  ChangeIssueTypeParamsValidationError,
   CommentIdValidationError,
   CommentParamsValidationError,
   IssueCreateParamsValidationError,
@@ -49,36 +41,17 @@ import {
   WorklogTimeFormatValidationError,
 } from "@features/jira/issues/validators/errors";
 
-import {
+export {
   BoardIdValidationError,
   BoardParamsValidationError,
 } from "@features/jira/boards/validators/errors";
 
-import { ProjectValidationError } from "@features/jira/projects/validators/errors";
+export { ProjectValidationError } from "@features/jira/projects/validators/errors";
 
-import {
+export {
   SprintIdValidationError,
   SprintParamsValidationError,
 } from "@features/jira/sprints/validators/errors";
-
-export {
-  // For backward compatibility, we re-export all validator errors
-  BoardIdValidationError,
-  BoardParamsValidationError,
-  CommentIdValidationError,
-  CommentParamsValidationError,
-  IssueCreateParamsValidationError,
-  IssueCreationError,
-  IssueTransitionValidationError,
-  IssueTypeValidationError,
-  IssueUpdateParamsValidationError,
-  ProjectValidationError,
-  SprintIdValidationError,
-  SprintParamsValidationError,
-  WorklogIdValidationError,
-  WorklogParamsValidationError,
-  WorklogTimeFormatValidationError,
-};
 
 /**
  * Determines if an error is a JIRA error

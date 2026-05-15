@@ -6,10 +6,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { IssueFormatter } from "@features/jira/issues/formatters/issue.formatter";
 import type { Issue } from "@features/jira/issues/models/issue.models";
-import type {
-  ADFDocument,
-  ADFNode,
-} from "@features/jira/shared/parsers/adf.parser";
+import type { ADFDocument } from "@features/jira/shared/parsers/adf.parser";
 import { testDataBuilder } from "@test/utils/mock-helpers";
 import { setupTests } from "@test/utils/test-setup";
 
@@ -30,6 +27,7 @@ describe("IssueFormatter", () => {
       issue.fields = {
         ...issue.fields,
         summary: "Test issue summary",
+        issuetype: { name: "Story" },
         status: { name: "To Do" },
         priority: { name: "High" },
         assignee: { displayName: "John Doe", accountId: "user-123" },
@@ -43,6 +41,7 @@ describe("IssueFormatter", () => {
       const result = formatter.format(issue);
 
       expect(result).toContain("# TEST-123: Test issue summary");
+      expect(result).toContain("**Type:** Story");
       expect(result).toContain("**Status:** To Do");
       expect(result).toContain("**Priority:** High");
       expect(result).toContain("**Assignee:** John Doe");
@@ -58,6 +57,37 @@ describe("IssueFormatter", () => {
       expect(result).toContain(
         "[View in JIRA](https://company.atlassian.net/browse/TEST-123)",
       );
+    });
+
+    test("should include parent and issue links when present", () => {
+      const issue = testDataBuilder.issueWithStatus("To Do", "blue");
+      issue.key = "CHILD-1";
+      issue.self = "https://company.atlassian.net/rest/api/3/issue/child-1";
+      issue.fields = {
+        ...issue.fields,
+        summary: "Child work",
+        issuetype: { name: "Task" },
+        status: { name: "To Do" },
+        priority: { name: "Low" },
+        assignee: { displayName: "A", accountId: "a" },
+        parent: { key: "EPIC-99" },
+        issuelinks: [
+          {
+            id: "10001",
+            type: { name: "Relates to" },
+            outwardIssue: { key: "OTHER-1" },
+            inwardIssue: { key: "CHILD-1" },
+          },
+        ],
+      };
+
+      const result = formatter.format(issue);
+
+      expect(result).toContain("**Type:** Task");
+      expect(result).toContain("**Parent:** EPIC-99");
+      expect(result).toContain("## Issue links");
+      expect(result).toContain("Relates to");
+      expect(result).toContain("10001");
     });
 
     test("should handle missing summary", () => {
@@ -401,7 +431,7 @@ describe("IssueFormatter", () => {
           {
             type: "paragraph",
             // Missing content property - this will be handled gracefully
-          } as Partial<ADFNode> & { type: string },
+          },
         ],
       };
       issue.fields = {

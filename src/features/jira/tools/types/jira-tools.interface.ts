@@ -24,6 +24,11 @@ export interface JiraTools {
   jira_update_issue: ToolHandler;
   jira_get_issue_link_types: ToolHandler;
   jira_link_issues: ToolHandler;
+  jira_get_epic_info: ToolHandler;
+  jira_set_issue_epic: ToolHandler;
+  jira_remove_issue_epic: ToolHandler;
+  jira_change_issue_type: ToolHandler;
+  jira_unlink_issue: ToolHandler;
   jira_search_issues: ToolHandler;
 
   // Project management tools
@@ -69,6 +74,11 @@ export interface JiraToolCategories {
     | "jira_update_issue"
     | "jira_get_issue_link_types"
     | "jira_link_issues"
+    | "jira_get_epic_info"
+    | "jira_set_issue_epic"
+    | "jira_remove_issue_epic"
+    | "jira_change_issue_type"
+    | "jira_unlink_issue"
     | "jira_search_issues"
   >;
 
@@ -118,6 +128,11 @@ export const JIRA_TOOL_NAMES = {
     "jira_update_issue",
     "jira_get_issue_link_types",
     "jira_link_issues",
+    "jira_get_epic_info",
+    "jira_set_issue_epic",
+    "jira_remove_issue_epic",
+    "jira_change_issue_type",
+    "jira_unlink_issue",
     "jira_search_issues",
   ] as const,
 

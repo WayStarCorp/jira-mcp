@@ -72,11 +72,12 @@ export function buildJQLFromHelpers(params: SearchJiraIssuesParams): string {
     const statuses = Array.isArray(params.status)
       ? params.status
       : [params.status];
-    conditions.push(`status IN (${statuses.map((s) => `"${s}"`).join(", ")})`);
+    const quotedStatuses = statuses.map((s) => `"${s}"`).join(", ");
+    conditions.push(`status IN (${quotedStatuses})`);
   }
 
   if (params.text) {
-    const escapedText = params.text.replace(/"/g, '\\"');
+    const escapedText = params.text.replace(/"/g, String.raw`\"`);
     conditions.push(
       `(summary ~ "${escapedText}" OR description ~ "${escapedText}")`,
     );
@@ -143,6 +144,7 @@ export class SearchIssuesUseCaseImpl implements SearchIssuesUseCase {
         jql: jqlQuery,
         fields: request.fields || [
           "summary",
+          "issuetype",
           "status",
           "priority",
           "assignee",

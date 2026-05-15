@@ -16,7 +16,8 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 
   - **Issue Management**: Full CRUD operations for JIRA issues with comprehensive field support
   - **Workflow & Transitions**: List and apply workflow transitions with status-name or transitionId
-  - **Issue Linking**: Link/unlink issues via typed directional links (blocks, duplicates, relates to, etc.)
+  - **Issue Linking**: Link/unlink issues via typed directional links (blocks, duplicates, relates to, etc.); remove a generic link by id with `jira_unlink_issue`
+  - **Epics & hierarchy**: Inspect epic/parent/Epic Link with `jira_get_epic_info`, attach or clear epic association via `jira_set_issue_epic` / `jira_remove_issue_epic` (parent vs Classic Epic Link), change issuetype with `jira_change_issue_type` (incl. `validateOnly`)
   - **Comment System**: Retrieve and add comments with progressive disclosure and filtering
   - **Project & Board Discovery**: Browse projects, boards, and sprints with advanced filtering
   - **Smart Search**: JQL and beginner-friendly search with rich formatting
@@ -29,13 +30,14 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 
 - 🏃 **Sprint Management** _(New in v0.6.0)_
 
-  - **Add Issues to Sprint**: Move issues into a sprint by explicit sprintId or active sprint on a board
+  - **List Sprints**: `jira_get_sprints` — all sprints on a board, or merged lists from accessible **Scrum** boards when `boardId` is omitted; filter by **active** / future / closed (active = “current” sprint on that board)
+  - **Add Issues to Sprint**: `jira_add_issues_to_sprint` — move issues in via explicit `sprintId`, or via `boardId` when the board has exactly one **active** sprint
 
 - 🏗️ **Enterprise-Grade Architecture**
 
   - **Modular Design**: Feature-based architecture with clear separation of concerns
   - **Robust HTTP Client**: Refactored with dedicated utility classes for reliability
-  - **Comprehensive Testing**: 900+ tests ensuring stability and reliability
+  - **Comprehensive Testing**: 1000+ unit tests ensuring stability and reliability
   - **Type Safety**: Full TypeScript strict mode with enhanced error handling
 
 - 🔍 **Powerful Search & Discovery**
@@ -52,6 +54,28 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
   - Array operations for labels, components, and versions
   - Custom field discovery via `jira_get_issue_custom_field_metadata`
 
+## 🆕 What's New in v0.6.1
+
+### 🎯 Epic hierarchy & issue tools
+
+- **`jira_get_epic_info`**, **`jira_set_issue_epic`**, **`jira_remove_issue_epic`**: parent vs Classic Epic Link via `relationMode` (`auto` | `parent` | `epicLink`) and optional `epicFieldId` (discover ids with `jira_get_issue_custom_field_metadata`; nothing instance-specific hardcoded).
+- **`jira_change_issue_type`**: change issuetype by name **or** id (XOR at runtime), with `validateOnly`, `requiredFields`, and `customFields` consistent with **`jira_update_issue`**. Use each REST field key in **either** `requiredFields` **or** `customFields`, not both — overlapping keys are rejected. The MCP tool JSON Schema lists both name and id as optional fields with no oneOf—codegen, UIs, and other clients must still pass **exactly one**; the server rejects missing/duplicate combinations at call time.
+- **`jira_unlink_issue`**: remove a generic **issue link** by `linkId` from **`issuelinks`** (not the same as clearing epic membership — use **`jira_remove_issue_epic`** for that).
+
+### 🐛 Important behavior fix
+
+- With **`relationMode: auto`** and **`includeChildren: true`**, child issues are loaded from **both** `parent = epic` and Epic Link JQL when the Epic Link field id is known, then **deduped** and ordered by **`updated`** (newest first), respecting **`maxChildren`**. Epics that mix parent- and Epic-Link–linked children no longer drop the Epic-Link-only side when any parent-linked child exists.
+- If Classic Epic Link **`customfield_*`** is **not** resolved for that epic (and optional editmeta probe finds no single candidate), **`jira_get_epic_info`** lists children from **parent JQL only** — issues linked **only** via Epic Link can be missing until you pass **`epicFieldId`** or use **`jira_get_issue_custom_field_metadata`**; the markdown adds a **parent-only** footnote when the merged Epic Link branch was not used.
+- **Dual capped searches**: in **`auto`** mode that is **two queries**, each limited to **`maxChildren`**, then merged, deduped, globally sorted, and truncated to **`maxChildren`** again—so the merged “top N by `updated`” need not match a single unconstrained global query; **by design** for API limits.
+
+### 📄 Issue markdown
+
+- **`jira_get_issue`** and **`search_jira_issues`** responses include **Type**, **parent**, and a short **Issue links** snippet when present. If you integrate via **fragile plain-text parsing**, treat this as a template change; rely on structured fields/API where possible.
+
+### 🧪 Quality
+
+- Broad unit coverage for the new handlers, use cases, resolvers, and formatters (`EpicRelationResolver`, epic flows, unlink, change-type).
+
 ## 🆕 What's New in v0.6.0
 
 ### 🆕 New Tools
@@ -60,7 +84,7 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 - **🔄 Workflow Transitions**: `jira_get_issue_transitions` + `jira_transition_issue` — inspect and apply workflow transitions by name or ID
 - **🔗 Issue Linking**: `jira_get_issue_link_types` + `jira_link_issues` — discover link types and create typed directional links between issues
 - **👤 User Management**: `jira_search_users`, `jira_get_assignable_users`, `jira_assign_issue` — full user search and assignment flow
-- **🏃 Sprint Membership**: `jira_add_issues_to_sprint` — add issues to an explicit sprint or to the active sprint on a board
+- **🏃 Sprints**: `jira_get_sprints` — list sprints (use `state:"active"` for the current sprint on a board); `jira_add_issues_to_sprint` — put issues into a sprint by `sprintId` or into the sole active sprint via `boardId`
 - **🔧 Custom Field Discovery**: `jira_get_issue_custom_field_metadata` — inspect custom field schemas before updating issues
 
 ### 🧪 Testing & Quality
@@ -149,6 +173,10 @@ JIRA_API_TOKEN=your-jira-api-token-here
 | `jira_create_issue`                    | Create new JIRA issues with comprehensive field support                | See issue creation parameters | Markdown-formatted creation result |
 | `jira_update_issue`                    | Update existing issues with fields, status, worklog, and custom fields | See issue update parameters   | Markdown-formatted update result   |
 | `jira_get_issue_custom_field_metadata` | Inspect custom field ids, types, and allowed values for an issue       | `issueKey`                    | Markdown-formatted field list      |
+| `jira_get_epic_info`                   | Epic/hierarchy info; optional children; see Epic management.           | `issueKey`, optional mode     | Markdown epic summary              |
+| `jira_set_issue_epic`                  | Attach issue to epic via parent or Epic Link field                     | child key, epic key, mode     | Markdown confirmation              |
+| `jira_remove_issue_epic`               | Clear epic association (parent or Epic Link)                           | `issueKey`, mode              | Markdown confirmation              |
+| `jira_change_issue_type`               | Change `issuetype`; MCP schema omits XOR — pass **one** of name or id  | `issueKey`, name or id        | Markdown result                    |
 | `search_jira_issues`                   | Search JIRA issues with JQL or helper parameters                       | See search parameters below   | Markdown-formatted search results  |
 
 ### Comments
@@ -156,7 +184,7 @@ JIRA_API_TOKEN=your-jira-api-token-here
 | Tool                      | Description                                                | Parameters                   | Returns                     |
 | ------------------------- | ---------------------------------------------------------- | ---------------------------- | --------------------------- |
 | `jira_get_issue_comments` | Retrieve comments with configurable quantity and filtering | See comment parameters below | Markdown-formatted comments |
-| `jira_add_issue_comment`  | Add a public comment to a JIRA issue (max 32 767 chars)    | `issueKey`, `comment`        | Confirmation with comment   |
+| `jira_add_issue_comment`  | Add a public comment to a JIRA issue (max 32,767 chars)    | `issueKey`, `comment`        | Confirmation with comment   |
 
 ### Workflow & Transitions
 
@@ -165,12 +193,43 @@ JIRA_API_TOKEN=your-jira-api-token-here
 | `jira_get_issue_transitions` | List available workflow transitions for an issue                  | `issueKey`                      | Markdown list of transitions + IDs   |
 | `jira_transition_issue`      | Apply a workflow transition by `transitionId` **or** `statusName` | See transition parameters below | Markdown-formatted transition result |
 
+### 🎯 Epic management (parent, Epic Link, generic links)
+
+Jira represents “work under an epic” in different ways:
+
+- **Parent (`fields.parent`)** — hierarchy / many team-managed configs.
+- **Classic Epic Link** — company-managed `customfield_*` (id differs per site; discover via `jira_get_issue_custom_field_metadata`).
+- **Generic issue links** — directional types (`Blocks`, …) from `issuelinks`; **not** the same as epic membership. Use `jira_unlink_issue` with the link id from the issue payload only for those links.
+
+**Epic Link field id (detection):** Tools resolve Classic Epic Link by scanning **issue edit metadata** for a single editable custom field that matches typical Jira markers (e.g. Greenhopper `gh-epic-link` schema, or names/keys containing “epic link”). Unusual labels or multiple candidates require an explicit **`epicFieldId`** (`customfield_*` from **`jira_get_issue_custom_field_metadata`**). This stays instance-agnostic—no hardcoded field ids in code paths.
+
+#### Tools
+
+| Tool | When to use |
+| ---- | ----------- |
+| `jira_get_epic_info` | See type, parent, Epic Link value (when resolvable), `issuelinks`, optional children (`includeChildren`). **`relationMode: auto`** with children: loads **parent** children and **Epic Link** children when Epic Link `customfield_*` is known, merges, dedupes by key, sorts by **`updated`**, then **`maxChildren`**. If Epic Link id is **unknown**, children come from **parent JQL only** (Epic Link–only children may be omitted); markdown includes a **parent-only** footnote in that case. When both branches run, each JQL is **capped at `maxChildren`** before merge—merged ordering can differ from one uncapped query (intentional). Optional `epicIssuetypeName` (default `Epic`) selects which issuetype name counts as an epic for children and labels. |
+| `jira_set_issue_epic` | Put a child issue under an epic (`relationMode`: `auto` inspects editmeta; pass `epicFieldId` if ambiguous). Optional `epicIssuetypeName` when validating the target epic’s issuetype. |
+| `jira_remove_issue_epic` | Clear parent or Epic Link field; **not** for generic links. |
+| `jira_change_issue_type` | Set `issuetype` by **exactly one** of `issueTypeName` or `issueTypeId` (unless `validateOnly:true`); extra screen fields via `requiredFields` / `customFields` (same key must not appear in both). The MCP tool JSON Schema lists both as optional with no XOR/oneOf—**codegen and UIs must still enforce exactly one**; the server rejects missing or duplicate combinations at call time. |
+| `jira_unlink_issue` | `DELETE` a generic link by `linkId` from `issuelinks`. For epic membership use `jira_remove_issue_epic`. |
+
+#### Examples
+
+_Keys in the examples are samples — use your project keys._
+
+1. Inspect a candidate epic: `jira_get_epic_info` with `issueKey` — confirm type looks like Epic and see parent/links.
+2. Assign issue `PROJ-123` to epic `PROJ-900`: `jira_set_issue_epic` with `issueKey:"PROJ-123"`, `epicIssueKey:"PROJ-900"`, `relationMode:"auto"` (add `epicFieldId` if the tool reports multiple Epic Link candidates).
+3. Detach from epic: `jira_remove_issue_epic` with `issueKey` (same `relationMode` / `epicFieldId` pattern as set).
+4. Turn an issue into an epic (if Jira allows via API): `jira_change_issue_type` with `issueTypeName:"Epic"`. If children still reference it, fix hierarchy first; use `validateOnly:true` before applying.
+5. Downgrade from Epic: same tool with target type; Jira may require clearing child work or refuse the edit — surface errors mention Move/required fields.
+
 ### Issue Links
 
 | Tool                        | Description                                                  | Parameters                | Returns                        |
 | --------------------------- | ------------------------------------------------------------ | ------------------------- | ------------------------------ |
 | `jira_get_issue_link_types` | List all available link types with inward/outward directions | None                      | Markdown list of link types    |
 | `jira_link_issues`          | Create a typed directional link between two issues           | See link parameters below | Markdown-formatted link result |
+| `jira_unlink_issue`         | Delete a generic issue link by `linkId` (from `issuelinks`)  | `linkId`                  | Markdown confirmation          |
 
 ### Users & Assignment
 
@@ -190,10 +249,10 @@ JIRA_API_TOKEN=your-jira-api-token-here
 
 ### Sprints
 
-| Tool                        | Description                                                                                        | Parameters                      | Returns                        |
-| --------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------ |
-| `jira_get_sprints`          | Retrieve sprint information for a board, or from accessible Scrum boards when `boardId` is omitted | See sprint parameters           | Markdown-formatted sprint list |
-| `jira_add_issues_to_sprint` | Add one or more issues to a sprint (by `sprintId` **or** active sprint via `boardId`)              | See sprint-add parameters below | Markdown-formatted result      |
+| Tool                        | Description                                                                                                                                                                                                               | Parameters                      | Returns                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------ |
+| `jira_get_sprints`          | List sprints (current sprint = `state:"active"`). With `boardId`, scopes to one board; without it, aggregates sprints from accessible **Scrum** boards (company-managed Agile API).                                       | See sprint parameters           | Markdown-formatted sprint list |
+| `jira_add_issues_to_sprint` | Put issue(s) into a sprint: **`sprintId`** from `jira_get_sprints`, **or** **`boardId`** only when that board has exactly one active sprint (otherwise pass `sprintId`). Uses Jira Agile REST (company-managed boards).   | See sprint-add parameters below | Markdown-formatted result      |
 
 ### Time Tracking
 
@@ -227,7 +286,8 @@ The `jira_create_issue` tool supports comprehensive issue creation:
 - `timeEstimate`: String - Time estimate in JIRA format (e.g., `"2h"`, `"1d 4h"`)
 - `dueDate`: String - Due date in ISO format
 - `environment`: String - Environment description
-- `customFields`: Object - Custom field values
+- `parentIssueKey`: String - Maps to Jira REST `fields.parent` (parent issue key). Intended for **sub-tasks** and parent/child flows your site accepts via `parent`. On **company-managed** Jira, tying a Story/Task/Bug to an **epic** is usually the **Epic Link** custom field, not `parent`; using an epic key here may return **400 Bad Request**.
+- `customFields`: Object - Custom field values by id (`customfield_*`). For Classic epics, set Epic Link, e.g. `{"customfield_10014":"PROJ-1"}` — the numeric id differs per Jira instance; use `jira_get_issue_custom_field_metadata` on an issue in the target project to find it.
 
 **Examples**:
 
@@ -237,6 +297,9 @@ jira_create_issue projectKey:"PROJ" issueType:"Task" summary:"Fix login bug"
 
 # Comprehensive issue with all fields
 jira_create_issue projectKey:"PROJ" issueType:"Bug" summary:"Critical login issue" description:"Users cannot log in" priority:"High" assignee:"john.doe" labels:["urgent","security"] timeEstimate:"4h"
+
+# Story under a Classic epic (Epic Link id from metadata — example only)
+jira_create_issue projectKey:"PROJ" issueType:"Story" summary:"New story" customFields:{"customfield_10014":"PROJ-42"}
 ```
 
 #### Issue Update Parameters
@@ -334,29 +397,35 @@ jira_get_boards name:"Sprint Board" maxResults:10
 
 #### Sprint Parameters
 
-The `jira_get_sprints` tool supports sprint management:
-
-**Required**:
-
-- `boardId`: Number - Board ID to get sprints from
+The `jira_get_sprints` tool lists sprints for Scrum boards. There is no separate “get current sprint” tool: use **`state:"active"`** to restrict to sprint(s) currently in progress (**current sprint**).
 
 **Optional Parameters**:
 
-- `maxResults`: Number (1-100, default: 50) - Limit number of results
+- `boardId`: Number - When set, returns sprints for that board only (recommended). When **omitted**, the server loads sprints from **each accessible Scrum board** (up to 50 boards) and merges the results — useful for exploration, noisy if you have many boards.
+- `maxResults`: Number (1–50, default: 50) - Page size **per board** when querying; applies together with `startAt`.
 - `startAt`: Number (default: 0) - Pagination offset
-- `state`: String - Sprint state (`"active"`, `"closed"`, `"future"`)
+- `state`: String - Sprint state (`"active"` = current / in progress, `"closed"`, `"future"`)
+
+##### Recommended workflow for agents
+
+1. Resolve the board: `jira_get_boards` with `type:"scrum"` and optional `projectKeyOrId` / `name`.
+2. See the **current sprint**: `jira_get_sprints boardId:<id> state:"active"` — note `sprintId` from the response.
+3. Add issues: either `jira_add_issues_to_sprint issueKeys:[...] boardId:<id>` (only if exactly one active sprint on that board), or pass **`sprintId`** explicitly.
 
 **Examples**:
 
 ```text
-# Get all sprints for a board
+# All sprints on a board
 jira_get_sprints boardId:123
 
-# Get only active sprints
+# Current (active) sprint on a board — typical “what sprint are we in?” query
 jira_get_sprints boardId:123 state:"active"
 
-# Get sprints with pagination
+# Pagination on one board
 jira_get_sprints boardId:123 maxResults:10 startAt:20
+
+# Without boardId: active sprints across accessible Scrum boards (merged list)
+jira_get_sprints state:"active"
 ```
 
 #### Worklog Parameters
@@ -467,7 +536,7 @@ The `jira_add_issue_comment` tool adds a **public** comment to an issue:
 **Required**:
 
 - `issueKey`: String - Issue key (e.g., `"PROJ-123"`)
-- `comment`: String (1–32 767 chars) - Comment body (plain text; ADF conversion is handled automatically)
+- `comment`: String (1–32,767 chars) - Comment body (plain text; ADF conversion is handled automatically)
 
 **Examples**:
 
@@ -528,7 +597,7 @@ The `jira_link_issues` tool creates a directional link between two issues:
 
 **Optional**:
 
-- `comment`: String (max 32 767 chars) - Comment to add alongside the link
+- `comment`: String (max 32,767 chars) - Comment to add alongside the link
 
 **Examples**:
 
@@ -607,22 +676,27 @@ jira_assign_issue issueKey:"PROJ-123" accountId:"5b109f2e9729b51b54dc274d"
 
 #### Add Issues to Sprint Parameters
 
-The `jira_add_issues_to_sprint` tool moves issues into a sprint. Provide **exactly one** of `sprintId` or `boardId`:
+The `jira_add_issues_to_sprint` tool moves issues into a sprint (Agile REST). Provide **exactly one** of `sprintId` or `boardId`:
 
 **Required**:
 
 - `issueKeys`: Array of Strings - Issue keys to add (e.g., `["PROJ-123", "PROJ-124"]`)
 - Exactly **one** of:
   - `sprintId`: Number - Explicit sprint ID (from `jira_get_sprints`)
-  - `boardId`: Number - Board ID — uses the board's current **active** sprint
+  - `boardId`: Number - Uses that board's **active** sprint **only when there is exactly one** active sprint; if there are zero or several, the tool errors — then pick **`sprintId`** from `jira_get_sprints boardId:<id> state:"active"`
+
+**Edge cases**:
+
+- **No active sprint** on the board → use a **`future`** sprint id from `jira_get_sprints`, or start/plan a sprint in Jira UI first.
+- **Team-managed / Next-gen** boards may not behave like classic Scrum Agile endpoints — prefer verifying board type and IDs via `jira_get_boards`.
 
 **Examples**:
 
 ```text
-# Add to an explicit sprint
+# Add to an explicit sprint (safest when multiple actives or unclear board state)
 jira_add_issues_to_sprint issueKeys:["PROJ-123"] sprintId:42
 
-# Add to the active sprint on a board
+# Add to the active sprint on a board (works only when there is exactly one active sprint)
 jira_add_issues_to_sprint issueKeys:["PROJ-123","PROJ-124"] boardId:7
 ```
 

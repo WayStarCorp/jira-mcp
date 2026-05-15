@@ -62,11 +62,28 @@ describe("IssueCustomFieldRepositoryImpl", () => {
         operations: ["set"],
       }),
     );
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
     expect(sendRequestMock).toHaveBeenCalledWith(
       expect.objectContaining({
         endpoint: "issue/INV-1930/editmeta",
         method: "GET",
       }),
     );
+  });
+
+  it("returns full editmeta field map from getIssueEditMetaFields", async () => {
+    sendRequestMock.mockResolvedValue({
+      fields: {
+        summary: { name: "Summary", operations: ["set"] },
+        parent: { operations: ["set"] },
+        customfield_1: { name: "Epic Link", operations: ["set"] },
+      },
+    });
+
+    const fields = await repository.getIssueEditMetaFields("X-1");
+
+    expect(fields.summary).toBeDefined();
+    expect(fields.parent).toBeDefined();
+    expect(fields.customfield_1).toBeDefined();
   });
 });

@@ -29,49 +29,51 @@ export function createMockIssueRepository() {
 /**
  * Creates a mock issue search repository
  */
-export function createMockIssueSearchRepository() {
+export function createMockIssueSearchRepository(): IssueSearchRepository {
   return {
     searchIssues: mock(),
-  } as unknown as IssueSearchRepository;
+  };
 }
 
 /**
  * Creates a mock issue transition repository
  */
-export function createMockIssueTransitionRepository() {
+export function createMockIssueTransitionRepository(): IssueTransitionRepository {
   return {
     getIssueTransitions: mock(),
     transitionIssue: mock(),
-  } as unknown as IssueTransitionRepository;
+  };
 }
 
 /**
  * Creates a mock issue comment repository
  */
-export function createMockIssueCommentRepository() {
+export function createMockIssueCommentRepository(): IssueCommentRepository {
   return {
     getIssueComments: mock(),
     addIssueComment: mock(),
-  } as unknown as IssueCommentRepository;
+  };
 }
 
 /**
  * Creates a mock issue custom field repository
  */
-export function createMockIssueCustomFieldRepository() {
+export function createMockIssueCustomFieldRepository(): IssueCustomFieldRepository {
   return {
     getIssueCustomFieldMetadata: mock(),
-  } as unknown as IssueCustomFieldRepository;
+    getIssueEditMetaFields: mock(),
+  };
 }
 
 /**
  * Creates a mock issue link repository
  */
-export function createMockIssueLinkRepository() {
+export function createMockIssueLinkRepository(): IssueLinkRepository {
   return {
     getIssueLinkTypes: mock(),
     linkIssues: mock(),
-  } as unknown as IssueLinkRepository;
+    deleteIssueLink: mock(),
+  };
 }
 
 /**
