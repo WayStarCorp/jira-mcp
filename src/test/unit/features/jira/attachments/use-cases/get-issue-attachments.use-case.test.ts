@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { JiraNotFoundError } from "@features/jira/client/errors";
 import type { IssueRepository } from "@features/jira/issues/repositories/issue.repository";
 import { GetIssueAttachmentsUseCaseImpl } from "@features/jira/attachments/use-cases/get-issue-attachments.use-case";
 import { setupTests } from "@test/utils/test-setup";
@@ -63,5 +64,15 @@ describe("GetIssueAttachmentsUseCaseImpl", () => {
     const result = await useCase.execute({ issueKey: "SUPP-80" });
 
     expect(result.attachments).toEqual([]);
+  });
+
+  test("rethrows repository not-found with 404 status", async () => {
+    const notFound = new JiraNotFoundError("Issue", "MISSING-1");
+    getIssueMock.mockImplementation(() => Promise.reject(notFound));
+
+    await expect(useCase.execute({ issueKey: "MISSING-1" })).rejects.toBe(
+      notFound,
+    );
+    expect(notFound.statusCode).toBe(404);
   });
 });

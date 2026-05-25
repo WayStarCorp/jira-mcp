@@ -4,7 +4,6 @@
  * Retrieves attachment metadata from issue fields.attachment
  */
 
-import { JiraApiError } from "@features/jira/client/errors";
 import type { IssueRepository } from "@features/jira/issues/repositories";
 import type { AttachmentMetadata } from "../models";
 import { mapIssueAttachments } from "../models";
@@ -28,22 +27,12 @@ export class GetIssueAttachmentsUseCaseImpl implements GetIssueAttachmentsUseCas
   public async execute(
     request: GetIssueAttachmentsRequest,
   ): Promise<GetIssueAttachmentsResult> {
-    try {
-      const issue = await this.issueRepository.getIssue(request.issueKey);
-      const attachments = mapIssueAttachments(issue.fields?.attachment);
+    const issue = await this.issueRepository.getIssue(request.issueKey);
+    const attachments = mapIssueAttachments(issue.fields?.attachment);
 
-      return {
-        issueKey: request.issueKey,
-        attachments,
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw JiraApiError.withStatusCode(
-          `Failed to get issue attachments: ${error.message}`,
-          400,
-        );
-      }
-      throw error;
-    }
+    return {
+      issueKey: request.issueKey,
+      attachments,
+    };
   }
 }
