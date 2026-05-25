@@ -14,24 +14,25 @@
 
 ## File map (создать / изменить)
 
-| Area | Create | Modify |
-|------|--------|--------|
-| Spike doc | `docs/superpowers/spikes/2026-05-25-attachments-spike.md` | spec (id-bridge, hosts) |
-| Core | — | `mcp-response.types.ts`, `mcp-response.util.ts`, `mcp-adapter.util.ts`, `index.ts` |
-| Errors | `attachment-too-large.error.ts` | `core/errors/index.ts` |
-| HTTP | — | `jira.http.types.ts`, `jira.http-client.impl.ts`, unit test |
-| ADF | — | `adf.parser.ts`, `adf.parser.test.ts` |
-| Attachments domain | `attachments/**` (models, repo, formatters, use-cases, handlers, validators) | `attachments/index.ts` |
-| Issues integration | `inline-media.formatter.ts` (или в `attachments/formatters/`) | `issue.formatter.ts`, `issue-description.formatter.ts`, `comments.formatter.ts`, `get-issue-comments.use-case.ts`, models |
-| Tools | `attachment-tools.config.ts` | `tool.factory.ts`, `dependency.factory.ts`, `jira-tools.interface.ts`, `tool.registry.ts`, `configs/index.ts` |
-| Tests | unit + integration under `src/test/` | — |
-| Release | — | `package.json`, `CHANGELOG.md`, `README.md` |
+| Area               | Create                                                                       | Modify                                                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Spike doc          | `docs/superpowers/spikes/2026-05-25-attachments-spike.md`                    | spec (id-bridge, hosts)                                                                                                   |
+| Core               | —                                                                            | `mcp-response.types.ts`, `mcp-response.util.ts`, `mcp-adapter.util.ts`, `index.ts`                                        |
+| Errors             | `attachment-too-large.error.ts`                                              | `core/errors/index.ts`                                                                                                    |
+| HTTP               | —                                                                            | `jira.http.types.ts`, `jira.http-client.impl.ts`, unit test                                                               |
+| ADF                | —                                                                            | `adf.parser.ts`, `adf.parser.test.ts`                                                                                     |
+| Attachments domain | `attachments/**` (models, repo, formatters, use-cases, handlers, validators) | `attachments/index.ts`                                                                                                    |
+| Issues integration | `inline-media.formatter.ts` (или в `attachments/formatters/`)                | `issue.formatter.ts`, `issue-description.formatter.ts`, `comments.formatter.ts`, `get-issue-comments.use-case.ts`, models |
+| Tools              | `attachment-tools.config.ts`                                                 | `tool.factory.ts`, `dependency.factory.ts`, `jira-tools.interface.ts`, `tool.registry.ts`, `configs/index.ts`             |
+| Tests              | unit + integration under `src/test/`                                         | —                                                                                                                         |
+| Release            | —                                                                            | `package.json`, `CHANGELOG.md`, `README.md`                                                                               |
 
 ---
 
 ### Task 0: Pre-implementation spike (SUPP-79)
 
 **Files:**
+
 - Create: `docs/superpowers/spikes/2026-05-25-attachments-spike.md`
 - Modify (if findings differ): `docs/superpowers/specs/2026-05-25-attachments-design.md` (ADF Media Resolution, Open Questions → allowed hosts)
 
@@ -49,6 +50,7 @@ curl -s -u "$JIRA_USERNAME:$JIRA_API_TOKEN" \
 - [ ] **Step 2: Зафиксировать сравнение media id ↔ attachment id**
 
 В spike-doc записать:
+
 - каждый `media.attrs.id` из description/comments;
 - каждый `fields.attachment[].id`;
 - совпадают ли (id-bridge: yes/no/partial).
@@ -80,6 +82,7 @@ git commit -m "docs/superpowers/spikes/2026-05-25-attachments-spike.md: Jira att
 ### Task 1: `McpResponse.content` + adapter passthrough
 
 **Files:**
+
 - Modify: `src/core/responses/mcp-response.types.ts`
 - Modify: `src/core/responses/mcp-response.util.ts`
 - Modify: `src/core/responses/mcp-adapter.util.ts`
@@ -178,6 +181,7 @@ git commit -m "src/core/responses/: McpResponse.content passthrough in adaptToMc
 ### Task 2: `AttachmentMetadata` models + `AttachmentTooLargeError`
 
 **Files:**
+
 - Create: `src/features/jira/attachments/models/attachment.models.ts`
 - Create: `src/core/errors/attachment-too-large.error.ts`
 - Create: `src/test/unit/core/errors/attachment-too-large.error.test.ts`
@@ -264,6 +268,7 @@ git commit -m "src/features/jira/attachments/models/attachment.models.ts: Attach
 ### Task 3: `downloadBinary` on HTTP client
 
 **Files:**
+
 - Modify: `src/features/jira/client/http/jira.http.types.ts`
 - Modify: `src/features/jira/client/http/jira.http-client.impl.ts`
 - Create: `src/features/jira/client/http/attachment-url.validator.ts` (host allowlist)
@@ -301,6 +306,7 @@ git commit -m "src/features/jira/client/http/jira.http-client.impl.ts: downloadB
 ### Task 4: `attachment.repository`
 
 **Files:**
+
 - Create: `src/features/jira/attachments/repositories/attachment.repository.ts`
 - Create: `src/test/integration/attachment-repository.integration.test.ts`
 
@@ -338,6 +344,7 @@ export class AttachmentRepositoryImpl {
 ### Task 5: `parseADFWithMedia`
 
 **Files:**
+
 - Modify: `src/features/jira/shared/parsers/adf.parser.ts`
 - Modify: `src/test/unit/features/jira/shared/parsers/adf.parser.test.ts`
 
@@ -377,6 +384,7 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 6: Formatters (list + inline media)
 
 **Files:**
+
 - Create: `src/features/jira/attachments/formatters/attachment.formatter.ts`
 - Create: `src/features/jira/attachments/formatters/inline-media.formatter.ts`
 - Create: `src/test/unit/features/jira/attachments/formatters/attachment.formatter.test.ts`
@@ -391,6 +399,7 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 7: `jira_get_issue_attachments` tool chain
 
 **Files:**
+
 - Create: `get-issue-attachments.use-case.ts`, `get-issue-attachments.handler.ts`, validator schema
 - Reuse `IssueRepository.getIssue` — extract `fields.attachment`
 
@@ -405,10 +414,12 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 8: `jira_download_attachment` tool chain
 
 **Files:**
+
 - Create: `download-attachment.use-case.ts`, `download-attachment.handler.ts`
 - Modify: handler may override `formatResult` OR return object consumed by use case → `createSuccessResponse("", { content: [image] })`
 
 **Logic:**
+
 - Clamp `maxBytes` to hard max
 - image/* → base64 `ImageContent`
 - text/*, application/json → decode UTF-8 (charset from header if present)
@@ -423,6 +434,7 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 9: Integrate `jira_get_issue`
 
 **Files:**
+
 - Modify: `src/features/jira/issues/formatters/issue.formatter.ts`
 - Modify: `src/features/jira/issues/formatters/issue-description.formatter.ts`
 
@@ -437,6 +449,7 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 10: Integrate `jira_get_issue_comments`
 
 **Files:**
+
 - Modify: `get-issue-comments.use-case.ts` → `CommentsWithAttachments`
 - Modify: `comments.formatter.ts`
 - Modify: `get-issue-comments.handler.test.ts`
@@ -451,12 +464,14 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 ### Task 11: Register tools (29 → 31 tools)
 
 **Files:**
+
 - Create: `src/features/jira/tools/configs/attachment-tools.config.ts`
 - Modify: `dependency.factory.ts`, `tool.factory.ts` (`createAttachmentHandlers`), `jira-tools.interface.ts`, `tool.registry.ts`, `configs/index.ts`
 - Create: `src/features/jira/attachments/index.ts`
 - Modify: `src/features/jira/index.ts` — `export * from "./attachments"`
 
 Add to `JiraTools`:
+
 - `jira_get_issue_attachments`
 - `jira_download_attachment`
 
@@ -482,6 +497,7 @@ git commit -m "src/features/jira/tools/: register jira_get_issue_attachments and
 ### Task 13: Release v0.7.0 docs
 
 **Files:**
+
 - Modify: `package.json` version `0.7.0`
 - Modify: `CHANGELOG.md`, `README.md`
 
@@ -493,22 +509,22 @@ git commit -m "src/features/jira/tools/: register jira_get_issue_attachments and
 
 ## Spec coverage checklist
 
-| Spec section | Task |
-|--------------|------|
-| Spike | 0 |
-| MCP `content` passthrough | 1 |
-| `AttachmentMetadata` / errors | 2 |
-| `downloadBinary` security | 3 |
-| `attachment.repository` | 4 |
-| ADF `parseADFWithMedia` | 5 |
-| Formatters | 6 |
-| `jira_get_issue_attachments` | 7 |
-| `jira_download_attachment` | 8 |
-| `jira_get_issue` integration | 9 |
-| `jira_get_issue_comments` | 10 |
-| Tool registry | 11 |
-| Tests / acceptance | 12 |
-| Publish 0.7.0 | 13 |
+| Spec section                  | Task |
+| ----------------------------- | ---- |
+| Spike                         | 0    |
+| MCP `content` passthrough     | 1    |
+| `AttachmentMetadata` / errors | 2    |
+| `downloadBinary` security     | 3    |
+| `attachment.repository`       | 4    |
+| ADF `parseADFWithMedia`       | 5    |
+| Formatters                    | 6    |
+| `jira_get_issue_attachments`  | 7    |
+| `jira_download_attachment`    | 8    |
+| `jira_get_issue` integration  | 9    |
+| `jira_get_issue_comments`     | 10   |
+| Tool registry                 | 11   |
+| Tests / acceptance            | 12   |
+| Publish 0.7.0                 | 13   |
 
 ## Out of scope (no tasks)
 
