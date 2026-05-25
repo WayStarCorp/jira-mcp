@@ -125,24 +125,23 @@ export class CommentsFormatter
     }
 
     // Parse and add comment body content
-    if (comment.body) {
-      if (typeof comment.body === "object") {
-        const { markdown, media } = parseADFWithMedia(comment.body);
-        commentMarkdown += markdown.trim() || "_No content_";
-        const inlineBlock = formatInlineMediaBlock(
-          media,
-          attachments,
-          comment.id,
-        );
-        if (inlineBlock) {
-          commentMarkdown += `\n\n${inlineBlock}`;
-        }
-      } else {
-        const bodyText = parseADF(comment.body);
-        commentMarkdown += bodyText.trim() || "_No content_";
+    const body = comment.body;
+    if (body == null) {
+      commentMarkdown += "_No content_";
+    } else if (typeof body === "object") {
+      const { markdown, media } = parseADFWithMedia(body);
+      commentMarkdown += markdown.trim() || "_No content_";
+      const inlineBlock = formatInlineMediaBlock(
+        media,
+        attachments,
+        comment.id,
+      );
+      if (inlineBlock) {
+        commentMarkdown += `\n\n${inlineBlock}`;
       }
     } else {
-      commentMarkdown += "_No content_";
+      const bodyText = parseADF(body);
+      commentMarkdown += bodyText.trim() || "_No content_";
     }
 
     return commentMarkdown;
