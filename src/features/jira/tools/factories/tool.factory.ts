@@ -42,7 +42,10 @@ import {
   SearchUsersHandler,
 } from "../../users";
 
-import { GetIssueAttachmentsHandler } from "../../attachments";
+import {
+  DownloadAttachmentHandler,
+  GetIssueAttachmentsHandler,
+} from "../../attachments";
 
 /**
  * Create JIRA tools with dependencies
@@ -356,10 +359,17 @@ function createAttachmentHandlers(dependencies: JiraDependencies) {
     dependencies.getIssueAttachmentsUseCase,
     dependencies.attachmentValidator,
   );
+  const downloadAttachmentHandler = new DownloadAttachmentHandler(
+    dependencies.downloadAttachmentUseCase,
+    dependencies.attachmentValidator,
+  );
 
   return {
     jira_get_issue_attachments: {
       handle: async (args: unknown) => getIssueAttachmentsHandler.handle(args),
+    },
+    jira_download_attachment: {
+      handle: async (args: unknown) => downloadAttachmentHandler.handle(args),
     },
   };
 }

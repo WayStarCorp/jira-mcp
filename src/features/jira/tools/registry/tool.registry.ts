@@ -126,6 +126,7 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
       groupName: "attachments",
       configs: createAttachmentToolsConfig({
         jira_get_issue_attachments: tools.jira_get_issue_attachments,
+        jira_download_attachment: tools.jira_download_attachment,
       }),
     },
   ];

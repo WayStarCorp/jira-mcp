@@ -9,6 +9,7 @@ import { GetIssueAttachmentsHandler } from "@features/jira/attachments/handlers/
 import type { GetIssueAttachmentsUseCase } from "@features/jira/attachments/use-cases/get-issue-attachments.use-case";
 import type {
   AttachmentValidator,
+  DownloadAttachmentParams,
   GetIssueAttachmentsParams,
 } from "@features/jira/attachments/validators/attachment.validator";
 import { setupTests } from "@test/utils/test-setup";
@@ -35,6 +36,9 @@ describe("GetIssueAttachmentsHandler", () => {
 
     const mockValidator: AttachmentValidator = {
       validateGetIssueAttachmentsParams: validateMock,
+      validateDownloadAttachmentParams: mock(
+        (params: DownloadAttachmentParams) => params,
+      ),
     };
 
     handler = new GetIssueAttachmentsHandler(mockUseCase, mockValidator);

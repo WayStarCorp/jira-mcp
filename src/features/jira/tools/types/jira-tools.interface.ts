@@ -55,6 +55,7 @@ export interface JiraTools {
 
   // Attachment tools
   jira_get_issue_attachments: ToolHandler;
+  jira_download_attachment: ToolHandler;
 }
 
 /**

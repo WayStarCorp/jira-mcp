@@ -5,13 +5,17 @@
  */
 
 import type { ToolConfig, ToolHandler } from "../types";
-import { getIssueAttachmentsParamsSchema } from "../../attachments";
+import {
+  downloadAttachmentParamsSchema,
+  getIssueAttachmentsParamsSchema,
+} from "../../attachments";
 
 /**
  * Attachment tools configuration factory
  */
 export function createAttachmentToolsConfig(tools: {
   jira_get_issue_attachments: ToolHandler;
+  jira_download_attachment: ToolHandler;
 }): ToolConfig[] {
   return [
     {
@@ -21,6 +25,15 @@ export function createAttachmentToolsConfig(tools: {
       params: getIssueAttachmentsParamsSchema.shape,
       handler: tools.jira_get_issue_attachments.handle.bind(
         tools.jira_get_issue_attachments,
+      ),
+    },
+    {
+      name: "jira_download_attachment",
+      description:
+        "Download a Jira attachment by id. Images return MCP ImageContent; text/* and application/json return file text; other types return metadata only (no binary in v0.7.0). Default maxBytes 10 MiB, hard max 50 MiB.",
+      params: downloadAttachmentParamsSchema.shape,
+      handler: tools.jira_download_attachment.handle.bind(
+        tools.jira_download_attachment,
       ),
     },
   ];

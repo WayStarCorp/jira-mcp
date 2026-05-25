@@ -79,3 +79,14 @@ export class AttachmentFormatter
     return [header, ...lines].join("\n");
   }
 }
+
+/** Message when binary content is not returned (non-image/non-text) */
+export function formatDownloadMetadataMessage(
+  metadata: AttachmentMetadata,
+): string {
+  const size = formatAttachmentSize(metadata.size);
+  return [
+    `Downloaded: ${metadata.filename} (${metadata.mimeType}, ${size})`,
+    "(binary content not returned for non-image/non-text files)",
+  ].join("\n");
+}

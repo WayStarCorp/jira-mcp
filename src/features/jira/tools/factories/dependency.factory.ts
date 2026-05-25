@@ -77,8 +77,10 @@ import {
 
 import {
   AttachmentValidatorImpl,
+  DownloadAttachmentUseCaseImpl,
   GetIssueAttachmentsUseCaseImpl,
 } from "../../attachments";
+import { AttachmentRepositoryImpl } from "../../attachments/repositories";
 
 /**
  * Dependencies interface
@@ -118,6 +120,7 @@ export interface JiraDependencies {
   getAssignableUsersUseCase: GetAssignableUsersUseCaseImpl;
   assignIssueUseCase: AssignIssueUseCaseImpl;
   getIssueAttachmentsUseCase: GetIssueAttachmentsUseCaseImpl;
+  downloadAttachmentUseCase: DownloadAttachmentUseCaseImpl;
 
   // Validators
   issueParamsValidator: IssueParamsValidatorImpl;
@@ -175,6 +178,7 @@ function createRepositories(httpClient: JiraHttpClient) {
     boardRepository: new BoardRepositoryImpl(httpClient),
     sprintRepository: new SprintRepositoryImpl(httpClient),
     userProfileRepository: new UserProfileRepositoryImpl(httpClient),
+    attachmentRepository: new AttachmentRepositoryImpl(httpClient),
   };
 }
 
@@ -330,6 +334,9 @@ function createUseCases(
     ),
     getIssueAttachmentsUseCase: new GetIssueAttachmentsUseCaseImpl(
       repositories.issueRepository,
+    ),
+    downloadAttachmentUseCase: new DownloadAttachmentUseCaseImpl(
+      repositories.attachmentRepository,
     ),
   };
 }
