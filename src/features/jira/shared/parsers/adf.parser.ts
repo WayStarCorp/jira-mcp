@@ -109,7 +109,7 @@ export class ADFToMarkdownParser {
   /**
    * Parse a single ADF node
    */
-  private parseNode(node: ADFNode): string {
+  protected parseNode(node: ADFNode): string {
     switch (node.type) {
       case "doc":
         return this.parseContent(node.content || []);
@@ -142,7 +142,7 @@ export class ADFToMarkdownParser {
   /**
    * Parse array of content nodes
    */
-  private parseContent(content: ADFNode[]): string {
+  protected parseContent(content: ADFNode[]): string {
     return content.map((node) => this.parseNode(node)).join("");
   }
 
@@ -277,9 +277,91 @@ export class ADFToMarkdownParser {
 }
 
 /**
+ * Inline ADF media extracted during parsing
+ */
+export interface ParsedMedia {
+  mediaId: string;
+  type?: string;
+  collection?: string;
+  alt?: string;
+}
+
+/**
+ * Result of parsing ADF with inline media placeholders
+ */
+export interface ParsedADFWithMedia {
+  markdown: string;
+  media: ParsedMedia[];
+}
+
+function parsedMediaFromNode(node: ADFNode): ParsedMedia | null {
+  const id = node.attrs?.id;
+  if (!isString(id) || isEmptyString(id)) {
+    return null;
+  }
+
+  const type = node.attrs?.type;
+  const collection = node.attrs?.collection;
+  const alt = node.attrs?.alt;
+
+  return {
+    mediaId: id,
+    ...(isString(type) && !isEmptyString(type) ? { type } : {}),
+    ...(isString(collection) && !isEmptyString(collection)
+      ? { collection }
+      : {}),
+    ...(isString(alt) && !isEmptyString(alt) ? { alt } : {}),
+  };
+}
+
+/**
+ * ADF parser that collects inline media nodes alongside markdown
+ */
+export class ADFToMarkdownWithMediaParser extends ADFToMarkdownParser {
+  private readonly collectedMedia: ParsedMedia[] = [];
+
+  /**
+   * Parse ADF content to markdown and collect inline media metadata
+   */
+  parseWithMedia(
+    adf: ADFNode | string | null | undefined,
+  ): ParsedADFWithMedia {
+    this.collectedMedia.length = 0;
+    const markdown = this.parse(adf);
+    return { markdown, media: [...this.collectedMedia] };
+  }
+
+  protected override parseNode(node: ADFNode): string {
+    switch (node.type) {
+      case "media":
+        return this.parseMediaNode(node);
+      case "mediaSingle":
+      case "mediaGroup":
+        return this.parseContent(node.content || []);
+      default:
+        return super.parseNode(node);
+    }
+  }
+
+  private parseMediaNode(node: ADFNode): string {
+    const parsed = parsedMediaFromNode(node);
+    if (parsed) {
+      this.collectedMedia.push(parsed);
+      return `[media: ${parsed.mediaId}]`;
+    }
+    return "[media: unknown]";
+  }
+}
+
+/**
  * Default parser instance for convenience
  */
 export const adfParser = new ADFToMarkdownParser();
+
+/**
+ * Parser instance that collects inline ADF media
+ */
+export const adfParserWithMedia = new ADFToMarkdownWithMediaParser();
 
 /**
  * Convenience function for parsing ADF to markdown
@@ -288,6 +370,16 @@ export const adfParser = new ADFToMarkdownParser();
  */
 export function parseADF(adf: ADFNode | string | null | undefined): string {
   return adfParser.parse(adf);
+}
+
+/**
+ * Parse ADF to markdown with inline media placeholders and metadata
+ * @param adf - ADF object or string
+ */
+export function parseADFWithMedia(
+  adf: ADFNode | string | null | undefined,
+): ParsedADFWithMedia {
+  return adfParserWithMedia.parseWithMedia(adf);
 }
 
 /**

@@ -11,6 +11,7 @@ import {
   ensureADFFormat,
   extractTextFromADF,
   parseADF,
+  parseADFWithMedia,
   textToADF,
 } from "@features/jira/shared/parsers/adf.parser";
 import { setupTests } from "@test/utils/test-setup";
@@ -238,6 +239,105 @@ describe("ADFToMarkdownParser", () => {
     test("should handle string input (backward compatibility)", () => {
       const result = parser.extractPlainText("Simple text");
       expect(result).toBe("Simple text");
+    });
+  });
+});
+
+describe("parseADFWithMedia()", () => {
+  test("markdown matches parseADF when doc has no media", () => {
+    const adf: ADFNode = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "No images here" }],
+        },
+      ],
+    };
+
+    expect(parseADFWithMedia(adf).markdown).toBe(parseADF(adf));
+    expect(parseADFWithMedia(adf).media).toEqual([]);
+  });
+
+  test("mediaSingle collects media id and placeholder in markdown", () => {
+    const mediaId = "aad76a6d-1111-2222-3333-444444444444";
+    const adf: ADFNode = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "See screenshot:" }],
+        },
+        {
+          type: "mediaSingle",
+          attrs: { layout: "center" },
+          content: [
+            {
+              type: "media",
+              attrs: {
+                type: "file",
+                id: mediaId,
+                collection: "contentId-123",
+                alt: "screenshot.png",
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseADFWithMedia(adf);
+
+    expect(result.media).toEqual([
+      {
+        mediaId,
+        type: "file",
+        collection: "contentId-123",
+        alt: "screenshot.png",
+      },
+    ]);
+    expect(result.markdown).toContain(`[media: ${mediaId}]`);
+    expect(parseADF(adf)).not.toContain("[media:");
+  });
+
+  test("mediaGroup collects multiple media ids", () => {
+    const adf: ADFNode = {
+      type: "doc",
+      content: [
+        {
+          type: "mediaGroup",
+          content: [
+            {
+              type: "media",
+              attrs: { id: "media-a", type: "file", alt: "a.png" },
+            },
+            {
+              type: "media",
+              attrs: {
+                id: "media-b",
+                type: "file",
+                collection: "coll-2",
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = parseADFWithMedia(adf);
+
+    expect(result.media).toEqual([
+      { mediaId: "media-a", type: "file", alt: "a.png" },
+      { mediaId: "media-b", type: "file", collection: "coll-2" },
+    ]);
+    expect(result.markdown).toContain("[media: media-a]");
+    expect(result.markdown).toContain("[media: media-b]");
+  });
+
+  test("handles string input like parseADF", () => {
+    expect(parseADFWithMedia("plain text")).toEqual({
+      markdown: "plain text",
+      media: [],
     });
   });
 });
