@@ -75,6 +75,11 @@ import {
   UserProfileValidatorImpl,
 } from "../../users";
 
+import {
+  AttachmentValidatorImpl,
+  GetIssueAttachmentsUseCaseImpl,
+} from "../../attachments";
+
 /**
  * Dependencies interface
  *
@@ -112,6 +117,7 @@ export interface JiraDependencies {
   searchUsersUseCase: SearchUsersUseCaseImpl;
   getAssignableUsersUseCase: GetAssignableUsersUseCaseImpl;
   assignIssueUseCase: AssignIssueUseCaseImpl;
+  getIssueAttachmentsUseCase: GetIssueAttachmentsUseCaseImpl;
 
   // Validators
   issueParamsValidator: IssueParamsValidatorImpl;
@@ -122,6 +128,7 @@ export interface JiraDependencies {
   boardValidator: BoardValidatorImpl;
   sprintValidator: SprintValidatorImpl;
   userProfileValidator: UserProfileValidatorImpl;
+  attachmentValidator: AttachmentValidatorImpl;
 }
 
 /**
@@ -185,6 +192,7 @@ function createValidators(httpClient: JiraHttpClient) {
     boardValidator: new BoardValidatorImpl(),
     sprintValidator: new SprintValidatorImpl(),
     userProfileValidator: new UserProfileValidatorImpl(),
+    attachmentValidator: new AttachmentValidatorImpl(),
   };
 }
 
@@ -318,6 +326,9 @@ function createUseCases(
     ),
     assignIssueUseCase: new AssignIssueUseCaseImpl(
       repositories.userProfileRepository,
+      repositories.issueRepository,
+    ),
+    getIssueAttachmentsUseCase: new GetIssueAttachmentsUseCaseImpl(
       repositories.issueRepository,
     ),
   };

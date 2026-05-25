@@ -42,6 +42,8 @@ import {
   SearchUsersHandler,
 } from "../../users";
 
+import { GetIssueAttachmentsHandler } from "../../attachments";
+
 /**
  * Create JIRA tools with dependencies
  *
@@ -67,6 +69,9 @@ export function createJiraTools(dependencies: JiraDependencies): JiraTools {
   // Create user handlers
   const userHandlers = createUserHandlers(dependencies);
 
+  // Create attachment handlers
+  const attachmentHandlers = createAttachmentHandlers(dependencies);
+
   return {
     ...issueHandlers,
     ...worklogHandlers,
@@ -74,6 +79,7 @@ export function createJiraTools(dependencies: JiraDependencies): JiraTools {
     ...boardHandlers,
     ...sprintHandlers,
     ...userHandlers,
+    ...attachmentHandlers,
   };
 }
 
@@ -338,6 +344,22 @@ function createUserHandlers(dependencies: JiraDependencies) {
     },
     jira_assign_issue: {
       handle: async (args: unknown) => assignIssueHandler.handle(args),
+    },
+  };
+}
+
+/**
+ * Create attachment-related handlers
+ */
+function createAttachmentHandlers(dependencies: JiraDependencies) {
+  const getIssueAttachmentsHandler = new GetIssueAttachmentsHandler(
+    dependencies.getIssueAttachmentsUseCase,
+    dependencies.attachmentValidator,
+  );
+
+  return {
+    jira_get_issue_attachments: {
+      handle: async (args: unknown) => getIssueAttachmentsHandler.handle(args),
     },
   };
 }

@@ -52,6 +52,9 @@ export interface JiraTools {
   jira_search_users: ToolHandler;
   jira_get_assignable_users: ToolHandler;
   jira_assign_issue: ToolHandler;
+
+  // Attachment tools
+  jira_get_issue_attachments: ToolHandler;
 }
 
 /**

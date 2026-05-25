@@ -16,6 +16,7 @@ import type {
 } from "../types";
 
 import {
+  createAttachmentToolsConfig,
   createBoardToolsConfig,
   createIssueToolsConfig,
   createProjectToolsConfig,
@@ -119,6 +120,12 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
         jira_search_users: tools.jira_search_users,
         jira_get_assignable_users: tools.jira_get_assignable_users,
         jira_assign_issue: tools.jira_assign_issue,
+      }),
+    },
+    {
+      groupName: "attachments",
+      configs: createAttachmentToolsConfig({
+        jira_get_issue_attachments: tools.jira_get_issue_attachments,
       }),
     },
   ];
