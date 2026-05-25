@@ -264,6 +264,7 @@ function createUseCases(
     ),
     getIssueCommentsUseCase: new GetIssueCommentsUseCaseImpl(
       repositories.issueCommentRepository,
+      repositories.issueRepository,
       validators.issueCommentValidator,
     ),
     getIssueCustomFieldMetadataUseCase:

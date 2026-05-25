@@ -67,7 +67,7 @@ export class GetIssueCommentsHandler extends BaseToolHandler<
         maxComments: validatedParams.maxComments,
       });
 
-      const comments =
+      const { comments, attachments } =
         await this.getIssueCommentsUseCase.execute(validatedParams);
 
       // Step 3: Create formatting context
@@ -78,7 +78,7 @@ export class GetIssueCommentsHandler extends BaseToolHandler<
       };
 
       // Step 4: Format the comments using the formatter
-      return this.formatter.format({ comments, context });
+      return this.formatter.format({ comments, attachments, context });
     } catch (error) {
       this.logger.error(`Failed to get comments: ${error}`);
       throw this.enhanceError(error, params);

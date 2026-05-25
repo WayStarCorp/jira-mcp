@@ -2,35 +2,53 @@
  * Get Issue Comments Use Case
  */
 
+import {
+  type AttachmentMetadata,
+  mapIssueAttachments,
+} from "@features/jira/attachments/models";
 import type { Comment, GetCommentsOptions } from "../models/comment.models";
-import type { IssueCommentRepository } from "../repositories";
+import type { IssueCommentRepository, IssueRepository } from "../repositories";
 import type {
   GetIssueCommentsParams,
   IssueCommentValidator,
 } from "../validators";
 
+export interface CommentsWithAttachments {
+  comments: Comment[];
+  attachments: AttachmentMetadata[];
+}
+
 export interface GetIssueCommentsUseCase {
-  execute(params: GetIssueCommentsParams): Promise<Comment[]>;
+  execute(params: GetIssueCommentsParams): Promise<CommentsWithAttachments>;
 }
 
 export class GetIssueCommentsUseCaseImpl implements GetIssueCommentsUseCase {
   constructor(
     private readonly commentRepository: IssueCommentRepository,
+    private readonly issueRepository: IssueRepository,
     private readonly validator: IssueCommentValidator,
   ) {}
 
-  async execute(params: GetIssueCommentsParams): Promise<Comment[]> {
+  async execute(params: GetIssueCommentsParams): Promise<CommentsWithAttachments> {
     const validatedParams = this.validator.validateGetCommentsParams(params);
-    // Convert to repository format
     const options = {
       issueKey: validatedParams.issueKey,
       maxResults: validatedParams.maxComments,
       startAt: 0,
       orderBy: validatedParams.orderBy,
     } as GetCommentsOptions;
-    return this.commentRepository.getIssueComments(
-      validatedParams.issueKey,
-      options,
-    );
+
+    const [comments, issue] = await Promise.all([
+      this.commentRepository.getIssueComments(
+        validatedParams.issueKey,
+        options,
+      ),
+      this.issueRepository.getIssue(validatedParams.issueKey),
+    ]);
+
+    return {
+      comments,
+      attachments: mapIssueAttachments(issue.fields?.attachment),
+    };
   }
 }
