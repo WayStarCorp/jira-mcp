@@ -120,6 +120,7 @@ export class JiraHttpClient implements HttpClient {
     url: string,
     maxBytes: number,
   ): Promise<ArrayBuffer> {
+    const { maxRedirects } = this.attachmentUrlValidator;
     let currentUrl = this.attachmentUrlValidator.assertAllowedUrl(url);
     const requestInit = {
       ...this.requestBuilder.createRequestParams("GET"),
@@ -127,7 +128,6 @@ export class JiraHttpClient implements HttpClient {
     };
 
     try {
-      const maxRedirects = this.attachmentUrlValidator.maxRedirects;
       let redirectsFollowed = 0;
 
       // Initial request plus up to maxRedirects hops (maxRedirects + 1 fetches total).
@@ -201,7 +201,7 @@ export class JiraHttpClient implements HttpClient {
     response: Response,
     maxBytes: number,
   ): Promise<ArrayBuffer> {
-    const body = response.body;
+    const { body } = response;
     if (!body) {
       const buffer = await response.arrayBuffer();
       if (buffer.byteLength > maxBytes) {
