@@ -14,3 +14,5 @@
 - Спринты: отдельного инструмента «текущий спринт» нет — активный спринт смотрят через `jira_get_sprints` с `state: "active"` (часто после `jira_get_boards` для `boardId`); добавление задач в спринт — `jira_add_issues_to_sprint` с явным `sprintId` из списка спринтов или с одним `boardId`, если на доске ровно один активный спринт.
 - В `jira_update_issue` значение `assignee` — только account id (как ожидает Jira REST API); назначение по человекочитаемому имени — через `jira_assign_issue` с `query` или с уже известным `accountId`.
 - Публикуемый npm-пакет по полю `files` в `package.json` включает только `dist/`, `README.md`, `LICENSE`, `CHANGELOG.md`; `AGENTS.md`, исходники репозитория и тесты в tarball не попадают.
+- Релиз/публикация: `git tag v<version>` → `git push origin v<version>` → GitHub Release → workflow `release.yml` делает `npm publish --access public` (нужен секрет `NPM_TOKEN` на репозитории); ручной `npm publish` не нужен. Тег должен совпадать с `version` в `package.json` (без `v`).
+- Тулчейн: `bun test` (тесты), `bun run typecheck` (`tsc --noEmit`), `bunx biome lint` (линтер — Biome, не ESLint). Перед коммитом: `bun run typecheck ; bun test`.
