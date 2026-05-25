@@ -15,6 +15,14 @@ import type { McpResponse } from "./mcp-response.types";
  * @returns Response in the format expected by MCP server
  */
 export function adaptToMcpContent(response: McpResponse): McpContentResponse {
+  if (response.content?.length) {
+    return {
+      content: response.content,
+      isError: !response.success,
+      errorCode: response.errorCode,
+    };
+  }
+
   return {
     content: [
       {

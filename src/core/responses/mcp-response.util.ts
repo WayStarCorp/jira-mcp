@@ -4,6 +4,7 @@
  * Utility functions for creating standardized MCP responses.
  * These functions help maintain consistent response formats throughout the application.
  */
+import type { Content } from "./mcp-content.types";
 import type { McpResponse } from "./mcp-response.types";
 
 /**
@@ -11,12 +12,17 @@ import type { McpResponse } from "./mcp-response.types";
  *
  * @template T The type of the data payload
  * @param data - Response data
+ * @param extras - Optional MCP content passthrough for non-text responses
  * @returns A standardized success response
  */
-export function createSuccessResponse<T = unknown>(data: T): McpResponse<T> {
+export function createSuccessResponse<T = unknown>(
+  data: T,
+  extras?: { content?: Content[] },
+): McpResponse<T> {
   return {
     success: true,
     data,
+    ...extras,
   };
 }
 
