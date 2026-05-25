@@ -7,6 +7,8 @@
 - Перед публикацией или деплоем в облако для этого репозитория предпочтительна локальная валидация.
 - Для атрибуции в `README` и `LICENSE` можно использовать `@romualdy`; реальное имя писать не обязательно.
 - Секреты Jira не записывать в память или код: если нужно обсуждать конфигурацию, использовать только имена переменных окружения вроде `JIRA_HOST`, `JIRA_USERNAME`, `JIRA_API_TOKEN`.
+- На feature-ветках предпочитает логические коммиты по фазам (часто отдельно документация Superpowers и код), а не один сводный коммит на всю фичу.
+- Сообщение `+` — сигнал продолжить следующую задачу из implementation plan (часто Subagent-Driven Development по плану в `docs/superpowers/plans/`).
 
 ## Learned Workspace Facts
 
@@ -16,3 +18,5 @@
 - Публикуемый npm-пакет по полю `files` в `package.json` включает только `dist/`, `README.md`, `LICENSE`, `CHANGELOG.md`; `AGENTS.md`, исходники репозитория и тесты в tarball не попадают.
 - Релиз/публикация: `git tag v<version>` → `git push origin v<version>` → GitHub Release → workflow `release.yml` делает `npm publish --access public` (нужен секрет `NPM_TOKEN` на репозитории); ручной `npm publish` не нужен. Тег должен совпадать с `version` в `package.json` (без `v`).
 - Тулчейн: `bun test` (тесты), `bun run typecheck` (`tsc --noEmit`), `bunx biome lint` (линтер — Biome, не ESLint). Перед коммитом: `bun run typecheck ; bun test`.
+- Крупные фичи оформляются через Superpowers: спеки — `docs/superpowers/specs/`, планы — `docs/superpowers/plans/`, результаты spike — `docs/superpowers/spikes/`.
+- Вложения Jira: ADF inline `media` id (UUID) не совпадает с numeric id в `fields.attachment[]`; список — `jira_get_issue_attachments`, скачивание и `ImageContent` — `jira_download_attachment` с `attachmentId`; бинарный ответ через passthrough `McpResponse.content`.
