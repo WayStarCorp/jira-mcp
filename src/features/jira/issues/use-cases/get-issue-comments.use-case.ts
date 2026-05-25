@@ -15,6 +15,8 @@ import type {
 
 export interface CommentsWithAttachments {
   comments: Comment[];
+  /** Total comments on the issue (Jira API `total`, not page length) */
+  totalComments: number;
   attachments: AttachmentMetadata[];
 }
 
@@ -38,7 +40,7 @@ export class GetIssueCommentsUseCaseImpl implements GetIssueCommentsUseCase {
       orderBy: validatedParams.orderBy,
     } as GetCommentsOptions;
 
-    const [comments, issue] = await Promise.all([
+    const [commentsPage, issue] = await Promise.all([
       this.commentRepository.getIssueComments(
         validatedParams.issueKey,
         options,
@@ -47,7 +49,8 @@ export class GetIssueCommentsUseCaseImpl implements GetIssueCommentsUseCase {
     ]);
 
     return {
-      comments,
+      comments: commentsPage.comments,
+      totalComments: commentsPage.total,
       attachments: mapIssueAttachments(issue.fields?.attachment),
     };
   }

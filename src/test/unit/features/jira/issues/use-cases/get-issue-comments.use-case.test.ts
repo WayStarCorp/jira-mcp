@@ -26,7 +26,9 @@ describe("GetIssueCommentsUseCaseImpl", () => {
   let useCase: GetIssueCommentsUseCaseImpl;
 
   beforeEach(() => {
-    getIssueCommentsMock = mock(() => Promise.resolve(mockComments));
+    getIssueCommentsMock = mock(() =>
+      Promise.resolve({ comments: mockComments, total: mockComments.length }),
+    );
     getIssueMock = mock(() =>
       Promise.resolve({
         id: "1",
@@ -75,6 +77,7 @@ describe("GetIssueCommentsUseCaseImpl", () => {
     });
     expect(getIssueMock).toHaveBeenCalledWith("SUPP-79");
     expect(result.comments).toEqual(mockComments);
+    expect(result.totalComments).toBe(1);
     expect(result.attachments).toHaveLength(1);
     expect(result.attachments[0]).toMatchObject({
       id: "10042",
@@ -102,6 +105,23 @@ describe("GetIssueCommentsUseCaseImpl", () => {
     });
 
     expect(result.comments).toEqual(mockComments);
+    expect(result.totalComments).toBe(1);
     expect(result.attachments).toEqual([]);
+  });
+
+  test("returns totalComments from repository page, not displayed count", async () => {
+    getIssueCommentsMock.mockImplementation(() =>
+      Promise.resolve({ comments: mockComments, total: 50 }),
+    );
+
+    const result = await useCase.execute({
+      issueKey: "SUPP-79",
+      maxComments: 10,
+      orderBy: "created",
+      includeInternal: false,
+    });
+
+    expect(result.comments).toHaveLength(1);
+    expect(result.totalComments).toBe(50);
   });
 });

@@ -45,6 +45,39 @@ describe("IssueCommentRepositoryImpl", () => {
     mock.restore();
   });
 
+  it("returns comments and total from paginated API response", async () => {
+    sendRequestMock.mockResolvedValue({
+      comments: [
+        {
+          id: "10001",
+          body: "First",
+          author: { accountId: "user-1", displayName: "User" },
+          created: "2026-04-28T18:00:00.000Z",
+          updated: "2026-04-28T18:00:00.000Z",
+        },
+      ],
+      maxResults: 10,
+      startAt: 0,
+      total: 50,
+    });
+
+    const result = await repository.getIssueComments("PROJ-1", {
+      issueKey: "PROJ-1",
+      maxResults: 10,
+      startAt: 0,
+    });
+
+    expect(result.comments).toHaveLength(1);
+    expect(result.total).toBe(50);
+    expect(sendRequestMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        endpoint: "issue/PROJ-1/comment",
+        method: "GET",
+        queryParams: { maxResults: 10 },
+      }),
+    );
+  });
+
   it("adds a comment using ADF body", async () => {
     const response: Comment = {
       id: "10001",

@@ -24,8 +24,13 @@ setupTests();
 function commentsWithAttachments(
   comments: Comment[],
   attachments: CommentsWithAttachments["attachments"] = [],
+  totalComments?: number,
 ): CommentsWithAttachments {
-  return { comments, attachments };
+  return {
+    comments,
+    attachments,
+    totalComments: totalComments ?? comments.length,
+  };
 }
 
 describe("GetIssueCommentsHandler", () => {
@@ -196,6 +201,36 @@ describe("GetIssueCommentsHandler", () => {
           issueKey: "EMPTY-1",
         }),
       );
+    });
+
+    it("should show issue total when fewer comments are returned than exist on issue", async () => {
+      const displayedComments: Comment[] = Array.from({ length: 3 }, (_, i) => ({
+        id: `${i + 1}`,
+        self: `https://test.atlassian.net/rest/api/3/issue/123/comment/${i + 1}`,
+        author: {
+          displayName: `User ${i + 1}`,
+          accountId: `user-${i + 1}`,
+        },
+        body: `Comment ${i + 1}`,
+        created: "2024-01-15T10:30:00.000Z",
+        updated: "2024-01-15T10:30:00.000Z",
+      }));
+
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(
+          commentsWithAttachments(displayedComments, [], 50),
+        ),
+      );
+
+      const result = (await handler.handle({
+        issueKey: "TEST-789",
+        maxComments: 3,
+      })) as McpResponse<string>;
+
+      expect(result.success).toBe(true);
+      expect(result.data).toContain("**Total:** 50 comments");
+      expect(result.data).toContain("**Showing:** 3");
+      expect(result.data).toContain("to see 47 more comments");
     });
 
     it("should respect maxComments parameter", async () => {
