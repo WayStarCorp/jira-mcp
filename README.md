@@ -19,6 +19,7 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
   - **Issue Linking**: Link/unlink issues via typed directional links (blocks, duplicates, relates to, etc.); remove a generic link by id with `jira_unlink_issue`
   - **Epics & hierarchy**: Inspect epic/parent/Epic Link with `jira_get_epic_info`, attach or clear epic association via `jira_set_issue_epic` / `jira_remove_issue_epic` (parent vs Classic Epic Link), change issuetype with `jira_change_issue_type` (incl. `validateOnly`)
   - **Comment System**: Retrieve and add comments with progressive disclosure and filtering
+  - **Attachments & inline media** _(v0.7.0)_: List attachment metadata, download images/text via MCP, **Attachments** section and inline ADF media hints in **`jira_get_issue`** / **`jira_get_issue_comments`**
   - **Project & Board Discovery**: Browse projects, boards, and sprints with advanced filtering
   - **Smart Search**: JQL and beginner-friendly search with rich formatting
 
@@ -37,7 +38,7 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 
   - **Modular Design**: Feature-based architecture with clear separation of concerns
   - **Robust HTTP Client**: Refactored with dedicated utility classes for reliability
-  - **Comprehensive Testing**: 1000+ unit tests ensuring stability and reliability
+  - **Comprehensive Testing**: 1000+ unit tests (31 MCP tools) ensuring stability and reliability
   - **Type Safety**: Full TypeScript strict mode with enhanced error handling
 
 - 🔍 **Powerful Search & Discovery**
@@ -53,6 +54,23 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
   - ADF (Atlassian Document Format) parsing for rich content display
   - Array operations for labels, components, and versions
   - Custom field discovery via `jira_get_issue_custom_field_metadata`
+
+## 🆕 What's New in v0.7.0
+
+### 📎 Attachments & images
+
+- **`jira_get_issue_attachments`**: Metadata-only list from `fields.attachment[]` (id, filename, mimeType, size, author) — no binary download.
+- **`jira_download_attachment`**: Download by numeric attachment id from the list or from inline media hints. **Images** are returned as MCP **`ImageContent`** (base64 + `mimeType`) so clients that support MCP images can render them; **`text/*`** and **`application/json`** return decoded text; other MIME types return metadata only in v0.7.0.
+- **`jira_get_issue`**: Adds an **Attachments** section when files exist; description/comments-style ADF **`media`** nodes surface as **Inline media** with download hints when attachment id-bridge matches.
+- **`jira_get_issue_comments`**: Same inline media enrichment per comment body.
+
+**Agent workflow:** `jira_get_issue` or `jira_get_issue_attachments` → note `id` on each file → `jira_download_attachment attachmentId="<id>"` (optional `maxBytes`, default 10 MiB, hard max 50 MiB).
+
+**Security:** Binary download uses host allowlist validation on Jira `content` URLs (SSRF mitigation).
+
+### 🧪 Quality
+
+- Unit and integration tests for attachment domain, `downloadBinary`, ADF `parseADFWithMedia`, and MCP `content` passthrough.
 
 ## 🆕 What's New in v0.6.1
 
@@ -169,7 +187,7 @@ JIRA_API_TOKEN=your-jira-api-token-here
 | Tool                                   | Description                                                            | Parameters                    | Returns                            |
 | -------------------------------------- | ---------------------------------------------------------------------- | ----------------------------- | ---------------------------------- |
 | `jira_get_assigned_issues`             | Retrieves all issues assigned to you                                   | None                          | Markdown-formatted list of issues  |
-| `jira_get_issue`                       | Gets detailed information about a specific issue                       | `issueKey`                    | Markdown-formatted issue details   |
+| `jira_get_issue`                       | Issue details; **Attachments** section; inline ADF media hints       | `issueKey`                    | Markdown-formatted issue details   |
 | `jira_create_issue`                    | Create new JIRA issues with comprehensive field support                | See issue creation parameters | Markdown-formatted creation result |
 | `jira_update_issue`                    | Update existing issues with fields, status, worklog, and custom fields | See issue update parameters   | Markdown-formatted update result   |
 | `jira_get_issue_custom_field_metadata` | Inspect custom field ids, types, and allowed values for an issue       | `issueKey`                    | Markdown-formatted field list      |
@@ -183,8 +201,19 @@ JIRA_API_TOKEN=your-jira-api-token-here
 
 | Tool                      | Description                                                | Parameters                   | Returns                     |
 | ------------------------- | ---------------------------------------------------------- | ---------------------------- | --------------------------- |
-| `jira_get_issue_comments` | Retrieve comments with configurable quantity and filtering | See comment parameters below | Markdown-formatted comments |
+| `jira_get_issue_comments` | Comments with filtering; inline ADF media hints per comment | See comment parameters below | Markdown-formatted comments |
 | `jira_add_issue_comment`  | Add a public comment to a JIRA issue (max 32,767 chars)    | `issueKey`, `comment`        | Confirmation with comment   |
+
+### Attachments _(v0.7.0)_
+
+| Tool | Description | Parameters | Returns |
+| ---- | ----------- | ---------- | ------- |
+| `jira_get_issue_attachments` | List file attachments on an issue (metadata only) | `issueKey` | Markdown list with ids |
+| `jira_download_attachment` | Download attachment bytes by id | `attachmentId`, optional `maxBytes` | MCP **`ImageContent`** for images, text for `text/*` and `application/json`, or metadata-only message for other types |
+
+**Workflow:** List attachments (`jira_get_issue_attachments` or the **Attachments** block in `jira_get_issue`) → copy numeric **`id`** → `jira_download_attachment attachmentId="<id>"`. Inline images in description/comments show hints with the same id when ADF media id matches Jira attachment metadata.
+
+**MCP clients:** When the handler returns **`ImageContent`**, the response uses MCP `content` passthrough (not a JSON-wrapped string). Clients that support MCP images can display screenshots and diagrams directly.
 
 ### Workflow & Transitions
 
@@ -543,6 +572,27 @@ The `jira_add_issue_comment` tool adds a **public** comment to an issue:
 ```text
 # Add a comment to an issue
 jira_add_issue_comment issueKey:"PROJ-123" comment:"Fixed in commit abc1234, deploying to staging."
+```
+
+#### Attachment Parameters _(v0.7.0)_
+
+**`jira_get_issue_attachments`**
+
+- `issueKey`: String - Issue key (e.g., `"PROJ-123"`)
+
+**`jira_download_attachment`**
+
+- `attachmentId`: String - Numeric id from `fields.attachment[]` or inline media hints (ADF `media` UUID ≠ attachment id)
+- `maxBytes`: Number (optional) - Size cap in bytes (default 10 MiB; hard maximum 50 MiB)
+
+**Examples**:
+
+```text
+# List attachments on an issue
+jira_get_issue_attachments issueKey:"PROJ-123"
+
+# Download a screenshot by id
+jira_download_attachment attachmentId:"15894"
 ```
 
 #### Transition Parameters

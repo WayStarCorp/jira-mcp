@@ -7,11 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 📖 Documentation — unreleased
+## [0.7.0] - 2026-05-25
 
-- **`jira_change_issue_type`**: Clarified for MCP consumers that the tool JSON Schema exposes `issueTypeName` and `issueTypeId` as separate optional fields without an XOR/oneOf; **exactly one** must be supplied at runtime (unless `validateOnly:true`). Codegen and UI layers should encode that rule even when generating from schema alone.
-- **`jira_get_epic_info`**: Documented `relationMode:auto` + `includeChildren` when Classic Epic Link `customfield_*` is not resolved—children load from **parent** JQL only until `epicFieldId` or metadata resolves Epic Link; markdown includes a **parent-only** footnote when applicable.
-- **README**: Epic Link field detection heuristics (`EpicRelationResolver`) and when to pass explicit `epicFieldId`.
+Attachments and inline ADF media: list metadata, download images/text safely, and surface file references in issue and comment markdown. **31** MCP tools (was 29).
+
+### 🆕 Added
+
+- **`jira_get_issue_attachments`**: List `fields.attachment[]` metadata for an issue (filename, mimeType, size, author, id) without downloading bytes.
+- **`jira_download_attachment`**: Download by attachment id; images return MCP **`ImageContent`**; `text/*` and `application/json` return decoded text; other types return metadata only in v0.7.0.
+
+### ✨ Enhanced
+
+- **`jira_get_issue`**: Markdown **Attachments** section from `fields.attachment[]`; description uses **`parseADFWithMedia`** with an **Inline media** block when ADF contains `media` nodes (hints to download by attachment id when id-bridge matches).
+- **`jira_get_issue_comments`**: Inline media enrichment in comment bodies using issue attachment metadata and the same ADF media parsing.
+
+### 🔧 Technical
+
+- **`McpResponse.content`**: Optional MCP content array; **`adaptToMcpContent`** passthrough when set (legacy text path unchanged).
+- **`downloadBinary`**: Host allowlist and size cap on attachment `content` URLs (SSRF mitigation).
+- **`parseADFWithMedia`**: ADF parser extension for `media` / `mediaSingle` / `mediaGroup` without breaking string-only **`parseADF`**.
+- **`AttachmentTooLargeError`**, **`attachments/`** domain (repository, use-cases, handlers, formatters).
+
+### 🧪 Tests
+
+- Unit coverage for attachment handlers, repository, formatters, ADF media parsing, MCP adapter passthrough, and issue/comments integration.
+
+### 📖 Documentation — 0.7.0
+
+- README: attachments feature bullets, **31**-tool note, **What's New in v0.7.0**, tool table and list → download workflow, **ImageContent** for MCP clients.
 
 ## [0.6.1] - 2026-05-15
 
@@ -42,6 +65,9 @@ Epic/hierarchy MCP tools, issue-type change, generic link unlink, richer issue m
 - README: Sprint section — current sprint via `state:"active"`, optional `boardId`, agent workflow, `maxResults` cap, add-to-sprint edge cases; tool table + feature bullets; MCP tool descriptions in `sprint-tools.config.ts`.
 - README: Epic management section (parent vs Epic Link vs generic links), `jira_get_epic_info` auto merge behavior, note on markdown output stability.
 - Prior: Clarified `jira_create_issue` `parentIssueKey` vs Epic Link (`customFields`) for company-managed Jira; extended tool and field descriptions and README.
+- **`jira_change_issue_type`**: Clarified for MCP consumers that the tool JSON Schema exposes `issueTypeName` and `issueTypeId` as separate optional fields without an XOR/oneOf; **exactly one** must be supplied at runtime (unless `validateOnly:true`). Codegen and UI layers should encode that rule even when generating from schema alone.
+- **`jira_get_epic_info`**: Documented `relationMode:auto` + `includeChildren` when Classic Epic Link `customfield_*` is not resolved—children load from **parent** JQL only until `epicFieldId` or metadata resolves Epic Link; markdown includes a **parent-only** footnote when applicable.
+- **README**: Epic Link field detection heuristics (`EpicRelationResolver`) and when to pass explicit `epicFieldId`.
 
 ### 🔧 Technical
 
