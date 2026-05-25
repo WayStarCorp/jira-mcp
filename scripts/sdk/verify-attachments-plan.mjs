@@ -138,11 +138,12 @@ Tasks:
 
 Output concise Markdown in Russian: table Task | Status | Evidence (file paths). Max 40 lines. Do not edit any files.`;
 
-  const envNote = jiraConfigured
-    ? existsSync(distEntry)
+  let envNote = "MCP: skipped (JIRA_* env not set)";
+  if (jiraConfigured) {
+    envNote = existsSync(distEntry)
       ? "MCP: local jira-mcp stdio enabled"
-      : "MCP: skipped (run bun run build for dist/)"
-    : "MCP: skipped (JIRA_* env not set)";
+      : "MCP: skipped (run bun run build for dist/)";
+  }
 
   console.log(`\n=== Attachments plan — Cursor SDK agent ===\n${envNote}\n`);
 
