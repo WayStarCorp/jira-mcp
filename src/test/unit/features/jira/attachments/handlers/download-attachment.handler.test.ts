@@ -75,10 +75,11 @@ describe("DownloadAttachmentHandler", () => {
     expect(result.data).toBe("");
 
     const adapted = adaptToMcpContent(result);
-    expect(adapted.content).toEqual(result.content);
-    expect(adapted.content[0]?.type).toBe("image");
+    const content = result.content ?? [];
+    expect(adapted.content).toEqual(content);
+    expect(content[0]?.type).toBe("image");
     expect(
-      adapted.content.some(
+      content.some(
         (item) =>
           item.type === "text" &&
           typeof item.text === "string" &&

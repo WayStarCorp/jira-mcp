@@ -1,3 +1,5 @@
+import { AttachmentFormatter } from "@features/jira/attachments/formatters/attachment.formatter";
+import { mapIssueAttachments } from "@features/jira/attachments/models";
 import type { Formatter } from "@features/jira/shared/formatters/formatter.interface";
 /**
  * Issue formatter
@@ -23,12 +25,14 @@ export class IssueFormatter implements Formatter<Issue, string> {
   private readonly headerFormatter: IssueHeaderFormatter;
   private readonly descriptionFormatter: IssueDescriptionFormatter;
   private readonly datesFormatter: IssueDatesFormatter;
+  private readonly attachmentFormatter: AttachmentFormatter;
 
   constructor() {
     this.fieldValidator = new IssueFieldValidator();
     this.headerFormatter = new IssueHeaderFormatter();
     this.descriptionFormatter = new IssueDescriptionFormatter();
     this.datesFormatter = new IssueDatesFormatter();
+    this.attachmentFormatter = new AttachmentFormatter();
   }
 
   format(issue: Issue): string {
@@ -59,6 +63,7 @@ export class IssueFormatter implements Formatter<Issue, string> {
     markdown += this.formatLabels(issue);
     markdown += this.formatDates(issue);
     markdown += this.formatJiraLink(issue);
+    markdown += this.formatAttachments(issue);
 
     return markdown;
   }
@@ -115,6 +120,14 @@ export class IssueFormatter implements Formatter<Issue, string> {
       return "";
     }
     return this.headerFormatter.formatJiraLink(issue);
+  }
+
+  private formatAttachments(issue: Issue): string {
+    const attachments = mapIssueAttachments(issue.fields?.attachment);
+    if (attachments.length === 0) {
+      return "";
+    }
+    return `\n\n${this.attachmentFormatter.formatIssueAttachmentsSection(attachments)}`;
   }
 
   /**

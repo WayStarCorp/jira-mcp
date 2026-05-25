@@ -446,6 +446,50 @@ describe("IssueFormatter", () => {
       expect(result).toContain("# TEST-123");
     });
 
+    test("should omit attachments section when fields.attachment is empty", () => {
+      const issue = testDataBuilder.issueWithStatus("To Do", "blue");
+      issue.key = "SUPP-79";
+      issue.fields = {
+        ...issue.fields,
+        summary: "Support ticket",
+        attachment: [],
+      };
+
+      const result = formatter.format(issue);
+
+      expect(result).not.toContain("## Attachments");
+    });
+
+    test("should append attachments section when fields.attachment has items", () => {
+      const issue = testDataBuilder.issueWithStatus("To Do", "blue");
+      issue.key = "SUPP-79";
+      issue.self = "https://example.atlassian.net/rest/api/3/issue/supp-79";
+      issue.fields = {
+        ...issue.fields,
+        summary: "Support ticket",
+        attachment: [
+          {
+            id: "15894",
+            filename: "image-20260515-133022.png",
+            mimeType: "image/png",
+            size: 120161,
+            created: "2026-05-15T13:30:22.000+0000",
+            author: { displayName: "Alisia" },
+            content:
+              "https://example.atlassian.net/secure/attachment/15894/file.png",
+          },
+        ],
+      };
+
+      const result = formatter.format(issue);
+
+      expect(result).toContain("## Attachments (1)");
+      expect(result).toContain(
+        "📎 image-20260515-133022.png (image/png, 117 KB) · id: 15894 · use jira_download_attachment to view",
+      );
+      expect(result).not.toContain("contentUrl");
+    });
+
     test("should handle empty ADF content", () => {
       const issue = testDataBuilder.issueWithStatus("To Do", "blue");
       issue.key = "TEST-123";

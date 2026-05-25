@@ -461,6 +461,45 @@ describe("GetIssueHandler", () => {
       expect(result.data).toContain("Minimal issue");
     });
 
+    it("should include attachments section when issue has attachment field", async () => {
+      const issueWithAttachment: Issue = {
+        id: "supp-79",
+        key: "SUPP-79",
+        self: "https://example.atlassian.net/rest/api/3/issue/supp-79",
+        fields: {
+          summary: "Support with screenshot",
+          description: "See attachment list below",
+          issuetype: { name: "Task" },
+          status: { name: "To Do" },
+          priority: { name: "Medium" },
+          assignee: { displayName: "Agent", accountId: "agent-1" },
+          attachment: [
+            {
+              id: "15894",
+              filename: "image-20260515-133022.png",
+              mimeType: "image/png",
+              size: 120161,
+              created: "2026-05-15T13:30:22.000+0000",
+              author: { displayName: "Alisia" },
+              content:
+                "https://example.atlassian.net/secure/attachment/15894/file.png",
+            },
+          ],
+        },
+      };
+
+      mockUseCase.execute = mock(() => Promise.resolve(issueWithAttachment));
+
+      const result = (await handler.handle({
+        issueKey: "SUPP-79",
+      })) as McpResponse<string>;
+
+      expect(result.success).toBe(true);
+      expect(result.data).toContain("## Attachments (1)");
+      expect(result.data).toContain("id: 15894");
+      expect(result.data).toContain("jira_download_attachment");
+    });
+
     it("should handle string description (legacy format)", async () => {
       const issueWithStringDesc = {
         id: "test-string",

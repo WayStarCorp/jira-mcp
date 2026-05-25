@@ -46,3 +46,14 @@ export class InlineMediaFormatter
     return ["Inline media:", ...lines].join("\n");
   }
 }
+
+const defaultInlineMediaFormatter = new InlineMediaFormatter();
+
+/** Format inline ADF media block for issue description or comments */
+export function formatInlineMediaBlock(
+  media: ParsedMedia[],
+  attachments: AttachmentMetadata[],
+  commentId?: string,
+): string {
+  return defaultInlineMediaFormatter.format({ media, attachments, commentId });
+}
