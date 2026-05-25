@@ -9,8 +9,6 @@ import type { AttachmentMetadata } from "../models";
 export interface InlineMediaFormatterInput {
   media: ParsedMedia[];
   attachments: AttachmentMetadata[];
-  /** From comment entity when formatting comments — not read from ADF */
-  commentId?: string;
 }
 
 function findAttachmentByMediaId(
@@ -36,7 +34,6 @@ export class InlineMediaFormatter
 {
   format(input: InlineMediaFormatterInput): string {
     const { media, attachments } = input;
-    void input.commentId;
 
     if (media.length === 0) {
       return "";
@@ -53,7 +50,6 @@ const defaultInlineMediaFormatter = new InlineMediaFormatter();
 export function formatInlineMediaBlock(
   media: ParsedMedia[],
   attachments: AttachmentMetadata[],
-  commentId?: string,
 ): string {
-  return defaultInlineMediaFormatter.format({ media, attachments, commentId });
+  return defaultInlineMediaFormatter.format({ media, attachments });
 }

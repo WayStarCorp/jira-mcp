@@ -74,14 +74,4 @@ describe("InlineMediaFormatter", () => {
     );
   });
 
-  test("accepts optional commentId without emitting it", () => {
-    const output = formatter.format({
-      media: [spikeMedia],
-      attachments: [spikeAttachment],
-      commentId: "10001",
-    });
-
-    expect(output).not.toContain("10001");
-    expect(output).toContain("[unresolved: no matching attachment found]");
-  });
 });

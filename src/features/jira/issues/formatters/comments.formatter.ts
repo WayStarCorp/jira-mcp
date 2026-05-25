@@ -131,11 +131,7 @@ export class CommentsFormatter
     } else if (typeof body === "object") {
       const { markdown, media } = parseADFWithMedia(body);
       commentMarkdown += markdown.trim() || "_No content_";
-      const inlineBlock = formatInlineMediaBlock(
-        media,
-        attachments,
-        comment.id,
-      );
+      const inlineBlock = formatInlineMediaBlock(media, attachments);
       if (inlineBlock) {
         commentMarkdown += `\n\n${inlineBlock}`;
       }
