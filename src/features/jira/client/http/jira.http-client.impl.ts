@@ -127,11 +127,11 @@ export class JiraHttpClient implements HttpClient {
     };
 
     try {
-      for (
-        let redirectCount = 0;
-        redirectCount <= this.attachmentUrlValidator.maxRedirects;
-        redirectCount++
-      ) {
+      const maxRedirects = this.attachmentUrlValidator.maxRedirects;
+      let redirectsFollowed = 0;
+
+      // Initial request plus up to maxRedirects hops (maxRedirects + 1 fetches total).
+      for (let attempt = 0; attempt < maxRedirects + 1; attempt++) {
         logger.debug(`GET ${currentUrl.pathname}`, { prefix: "JIRA:HTTP" });
         const response = await fetch(currentUrl.href, requestInit);
 
@@ -142,9 +142,10 @@ export class JiraHttpClient implements HttpClient {
               `Redirect response missing Location header (HTTP ${response.status})`,
             );
           }
-          if (redirectCount >= this.attachmentUrlValidator.maxRedirects) {
+          if (redirectsFollowed >= maxRedirects) {
             throw new JiraApiError("Too many redirects while downloading attachment");
           }
+          redirectsFollowed++;
           currentUrl = this.attachmentUrlValidator.assertRedirectTarget(
             currentUrl,
             location,

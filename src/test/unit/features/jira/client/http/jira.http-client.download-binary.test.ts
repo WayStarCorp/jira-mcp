@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { AttachmentTooLargeError } from "@core/errors";
 import type { JiraConfigService } from "@features/jira/client/config/jira-config.service";
 import { JiraApiError } from "@features/jira/client/errors";
+import { AttachmentUrlValidator } from "@features/jira/client/http/attachment-url.validator";
 import { JiraHttpClient } from "@features/jira/client/http/jira.http-client.impl";
 
 const mockFetch = mock();
@@ -11,8 +12,13 @@ Object.defineProperty(globalThis, "fetch", {
 });
 
 const JIRA_HOST = "https://example.atlassian.net/";
+const MAX_REDIRECTS = new AttachmentUrlValidator(JIRA_HOST).maxRedirects;
 const ALLOWED_CONTENT_URL =
   "https://example.atlassian.net/rest/api/3/attachment/content/10042";
+
+function allowedRedirectUrl(pathSuffix: string): string {
+  return `https://example.atlassian.net/rest/api/3/attachment/content/${pathSuffix}`;
+}
 
 function createBinaryResponse(
   data: Uint8Array,
@@ -169,5 +175,42 @@ describe("JiraHttpClient.downloadBinary", () => {
     await expect(client.downloadBinary(httpUrl, 1024)).rejects.toThrow(JiraApiError);
 
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it(`follows exactly ${MAX_REDIRECTS} redirects then returns binary body`, async () => {
+    const payload = new Uint8Array([0x01, 0x02]);
+    const finalUrl = allowedRedirectUrl(`hop-${MAX_REDIRECTS}`);
+
+    for (let hop = 0; hop < MAX_REDIRECTS; hop++) {
+      mockFetch.mockResolvedValueOnce(
+        createRedirectResponse(allowedRedirectUrl(`hop-${hop + 1}`)),
+      );
+    }
+    mockFetch.mockResolvedValueOnce(
+      createBinaryResponse(payload, { contentLength: String(payload.byteLength) }),
+    );
+
+    const result = await client.downloadBinary(ALLOWED_CONTENT_URL, 1024);
+
+    expect(result.byteLength).toBe(2);
+    expect(mockFetch).toHaveBeenCalledTimes(MAX_REDIRECTS + 1);
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      finalUrl,
+      expect.objectContaining({ redirect: "manual" }),
+    );
+  });
+
+  it(`throws when redirect chain exceeds ${MAX_REDIRECTS} hops`, async () => {
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      mockFetch.mockResolvedValueOnce(
+        createRedirectResponse(allowedRedirectUrl(`too-many-${hop + 1}`)),
+      );
+    }
+
+    await expect(client.downloadBinary(ALLOWED_CONTENT_URL, 1024)).rejects.toThrow(
+      /Too many redirects/,
+    );
+
+    expect(mockFetch).toHaveBeenCalledTimes(MAX_REDIRECTS + 1);
   });
 });
