@@ -10,6 +10,7 @@ import { JiraApiError } from "@features/jira/client/errors";
 import { z } from "zod";
 import type { Issue, SearchIssuesOptions } from "../models";
 import type { IssueSearchRepository } from "../repositories";
+import { escapeJqlQuotedLiteral } from "../utils/jql-escape";
 
 /**
  * Base schema for search parameters (without refinement)
@@ -77,7 +78,7 @@ export function buildJQLFromHelpers(params: SearchJiraIssuesParams): string {
   }
 
   if (params.text) {
-    const escapedText = params.text.replace(/"/g, String.raw`\"`);
+    const escapedText = escapeJqlQuotedLiteral(params.text);
     conditions.push(
       `(summary ~ "${escapedText}" OR description ~ "${escapedText}")`,
     );

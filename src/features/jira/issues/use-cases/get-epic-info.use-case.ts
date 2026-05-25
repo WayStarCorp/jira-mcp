@@ -7,6 +7,7 @@ import type {
   EpicRelationResolver,
   ResolvedEpicRelation,
 } from "./epic-relation-resolver";
+import { escapeJqlQuotedLiteral } from "../utils/jql-escape";
 import type { SearchIssuesUseCase } from "./search-issues.use-case";
 
 const EPIC_INFO_FIELDS = [
@@ -183,13 +184,18 @@ export class GetEpicInfoUseCaseImpl implements GetEpicInfoUseCase {
     return a.length > 0 && a === b;
   }
 
+  private epicKeyForJql(epicKey: string): string {
+    return escapeJqlQuotedLiteral(epicKey);
+  }
+
   private searchChildrenByParent(
     epicKey: string,
     maxChildren: number,
     fields: string[],
   ): Promise<Issue[]> {
+    const key = this.epicKeyForJql(epicKey);
     return this.searchIssuesUseCase.execute({
-      jql: `parent = "${epicKey}" ORDER BY updated DESC`,
+      jql: `parent = "${key}" ORDER BY updated DESC`,
       maxResults: maxChildren,
       fields,
     });
@@ -250,8 +256,9 @@ export class GetEpicInfoUseCaseImpl implements GetEpicInfoUseCase {
         };
       }
       const cf = this.epicFieldIdToCfNumber(effectiveEpicLinkFieldId);
+      const key = this.epicKeyForJql(epicKey);
       const issues = await this.searchIssuesUseCase.execute({
-        jql: `cf[${cf}] = "${epicKey}" ORDER BY updated DESC`,
+        jql: `cf[${cf}] = "${key}" ORDER BY updated DESC`,
         maxResults: maxChildren,
         fields: searchFields,
       });
@@ -270,8 +277,9 @@ export class GetEpicInfoUseCaseImpl implements GetEpicInfoUseCase {
 
     if (effectiveEpicLinkFieldId?.startsWith("customfield_")) {
       const cf = this.epicFieldIdToCfNumber(effectiveEpicLinkFieldId);
+      const key = this.epicKeyForJql(epicKey);
       const byEpicLink = await this.searchIssuesUseCase.execute({
-        jql: `cf[${cf}] = "${epicKey}" ORDER BY updated DESC`,
+        jql: `cf[${cf}] = "${key}" ORDER BY updated DESC`,
         maxResults: maxChildren,
         fields: searchFields,
       });

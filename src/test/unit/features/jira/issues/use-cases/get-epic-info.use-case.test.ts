@@ -275,6 +275,24 @@ describe("GetEpicInfoUseCase", () => {
     );
   });
 
+  test("includeChildren escapes epic key in JQL string literals", async () => {
+    searchExecute.mockResolvedValue([]);
+
+    await useCase.execute({
+      issueKey: 'E-1" OR issue is not EMPTY',
+      relationMode: "parent",
+      includeChildren: true,
+      maxChildren: 5,
+    });
+
+    expect(searchExecute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jql: String.raw`parent = "E-1\" OR issue is not EMPTY" ORDER BY updated DESC`,
+        maxResults: 5,
+      }),
+    );
+  });
+
   test("includeChildren with relationMode epicLink and no customfield id returns empty children without throwing", async () => {
     resolve.mockResolvedValue({
       mode: "parent" as const,
