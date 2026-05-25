@@ -10,6 +10,7 @@ export * from "./issues";
 export * from "./boards";
 export * from "./projects";
 export * from "./sprints";
+export * from "./attachments";
 export * from "./users";
 export * from "./shared";
 
