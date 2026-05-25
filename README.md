@@ -68,7 +68,7 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 
 **Security:** Binary download uses host allowlist validation on Jira `content` URLs (SSRF mitigation).
 
-### 🧪 Quality
+### 🧪 Quality — v0.7.0
 
 - Unit and integration tests for attachment domain, `downloadBinary`, ADF `parseADFWithMedia`, and MCP `content` passthrough.
 
@@ -90,7 +90,7 @@ A powerful Model Context Protocol (MCP) server that brings Atlassian JIRA integr
 
 - **`jira_get_issue`** and **`search_jira_issues`** responses include **Type**, **parent**, and a short **Issue links** snippet when present. If you integrate via **fragile plain-text parsing**, treat this as a template change; rely on structured fields/API where possible.
 
-### 🧪 Quality
+### 🧪 Quality — v0.6.1
 
 - Broad unit coverage for the new handlers, use cases, resolvers, and formatters (`EpicRelationResolver`, epic flows, unlink, change-type).
 
@@ -187,7 +187,7 @@ JIRA_API_TOKEN=your-jira-api-token-here
 | Tool                                   | Description                                                            | Parameters                    | Returns                            |
 | -------------------------------------- | ---------------------------------------------------------------------- | ----------------------------- | ---------------------------------- |
 | `jira_get_assigned_issues`             | Retrieves all issues assigned to you                                   | None                          | Markdown-formatted list of issues  |
-| `jira_get_issue`                       | Issue details; **Attachments** section; inline ADF media hints       | `issueKey`                    | Markdown-formatted issue details   |
+| `jira_get_issue`                       | Issue details; **Attachments** section; inline ADF media hints         | `issueKey`                    | Markdown-formatted issue details   |
 | `jira_create_issue`                    | Create new JIRA issues with comprehensive field support                | See issue creation parameters | Markdown-formatted creation result |
 | `jira_update_issue`                    | Update existing issues with fields, status, worklog, and custom fields | See issue update parameters   | Markdown-formatted update result   |
 | `jira_get_issue_custom_field_metadata` | Inspect custom field ids, types, and allowed values for an issue       | `issueKey`                    | Markdown-formatted field list      |
@@ -201,7 +201,7 @@ JIRA_API_TOKEN=your-jira-api-token-here
 
 | Tool                      | Description                                                | Parameters                   | Returns                     |
 | ------------------------- | ---------------------------------------------------------- | ---------------------------- | --------------------------- |
-| `jira_get_issue_comments` | Comments with filtering; inline ADF media hints per comment | See comment parameters below | Markdown-formatted comments |
+| `jira_get_issue_comments` | Comments with filtering; inline ADF media hints per comment| See comment parameters below | Markdown-formatted comments |
 | `jira_add_issue_comment`  | Add a public comment to a JIRA issue (max 32,767 chars)    | `issueKey`, `comment`        | Confirmation with comment   |
 
 ### Attachments _(v0.7.0)_

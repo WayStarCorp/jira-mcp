@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Attachments and inline ADF media: list metadata, download images/text safely, and surface file references in issue and comment markdown. **31** MCP tools (was 29).
 
-### 🆕 Added
+### 🆕 Added — 0.7.0
 
 - **`jira_get_issue_attachments`**: List `fields.attachment[]` metadata for an issue (filename, mimeType, size, author, id) without downloading bytes.
 - **`jira_download_attachment`**: Download by attachment id; images return MCP **`ImageContent`**; `text/*` and `application/json` return decoded text; other types return metadata only in v0.7.0.
@@ -21,14 +21,14 @@ Attachments and inline ADF media: list metadata, download images/text safely, an
 - **`jira_get_issue`**: Markdown **Attachments** section from `fields.attachment[]`; description uses **`parseADFWithMedia`** with an **Inline media** block when ADF contains `media` nodes (hints to download by attachment id when id-bridge matches).
 - **`jira_get_issue_comments`**: Inline media enrichment in comment bodies using issue attachment metadata and the same ADF media parsing.
 
-### 🔧 Technical
+### 🔧 Technical — 0.7.0
 
 - **`McpResponse.content`**: Optional MCP content array; **`adaptToMcpContent`** passthrough when set (legacy text path unchanged).
 - **`downloadBinary`**: Host allowlist and size cap on attachment `content` URLs (SSRF mitigation).
 - **`parseADFWithMedia`**: ADF parser extension for `media` / `mediaSingle` / `mediaGroup` without breaking string-only **`parseADF`**.
 - **`AttachmentTooLargeError`**, **`attachments/`** domain (repository, use-cases, handlers, formatters).
 
-### 🧪 Tests
+### 🧪 Tests — 0.7.0
 
 - Unit coverage for attachment handlers, repository, formatters, ADF media parsing, MCP adapter passthrough, and issue/comments integration.
 
@@ -40,23 +40,23 @@ Attachments and inline ADF media: list metadata, download images/text safely, an
 
 Epic/hierarchy MCP tools, issue-type change, generic link unlink, richer issue markdown, and **`jira_get_epic_info` auto children** merge (parent + Classic Epic Link with dedupe and `maxChildren`).
 
-### 🐛 Fixed
+### 🐛 Fixed — 0.6.1
 
 - **`jira_get_epic_info`**: `relationMode: auto` + `includeChildren` now loads children from **both** parent hierarchy and Epic Link JQL when the Epic Link `customfield_*` is known, merges and dedupes by issue key, then sorts by `updated` (desc) before applying `maxChildren`. Previously, a non-empty parent-only result skipped Epic Link and could omit Epic-Link-only children. **Semantics**: two capped searches (each up to `maxChildren`) then merge/sort/slice—the resulting top N by `updated` can differ from a single global JQL; intentional for API limits.
 - **`jira_get_epic_info`**: `includeChildren` with `relationMode: epicLink` no longer throws when no Epic Link `customfield_*` is known; returns an empty children list instead.
 
-### 🆕 Added
+### 🆕 Added — 0.6.1
 
 - **Epic & hierarchy tools**: `jira_get_epic_info`, `jira_set_issue_epic`, `jira_remove_issue_epic` with `relationMode` `auto|parent|epicLink` and optional `epicFieldId` (no hardcoded custom field IDs in code paths).
 - **`jira_change_issue_type`**: change `issuetype` with `validateOnly`, `requiredFields`, and `customFields` resolution aligned with `jira_update_issue`.
 - **`jira_unlink_issue`**: delete generic issue links by REST `linkId` (`DELETE issueLink/{id}`).
 - **Issue output**: `jira_get_issue` / `search_jira_issues` markdown includes **Type**, parent, and a short **Issue links** snippet when present.
 
-### ⚠️ Compatibility
+### ⚠️ Compatibility — 0.6.1
 
 - Markdown returned for single-issue and search views **may change** if clients parse the raw template (new sections: type, parent, links summary). Intended for humans and stable field semantics, not brittle string parsers.
 
-### 🧪 Tests
+### 🧪 Tests — 0.6.1
 
 - Unit tests for `EpicRelationResolver`, epic set/remove/change-type/unlink use cases, `get-epic-info`, validator refinements, mixed parent + Epic Link children in auto mode, and `UnlinkIssueHandler`.
 
@@ -69,7 +69,7 @@ Epic/hierarchy MCP tools, issue-type change, generic link unlink, richer issue m
 - **`jira_get_epic_info`**: Documented `relationMode:auto` + `includeChildren` when Classic Epic Link `customfield_*` is not resolved—children load from **parent** JQL only until `epicFieldId` or metadata resolves Epic Link; markdown includes a **parent-only** footnote when applicable.
 - **README**: Epic Link field detection heuristics (`EpicRelationResolver`) and when to pass explicit `epicFieldId`.
 
-### 🔧 Technical
+### 🔧 Technical — 0.6.1
 
 - **`unlinkIssueParamsSchema`** moved from `epic.validator.ts` to `issue-link.validator.ts` (behavior unchanged).
 
