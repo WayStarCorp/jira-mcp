@@ -28,7 +28,8 @@
     "test:unit": "bun test src/test/unit src/test/helpers src/test/mocks src/test/utils",
     "test:integration": "bun test src/test/integration",
     "verify-attachments-plan": "node scripts/sdk/verify-attachments-plan.mjs",
-    "verify-attachments-plan:agent": "node scripts/sdk/verify-attachments-plan.mjs --agent"
+    "verify-attachments-plan:agent": "node scripts/sdk/verify-attachments-plan.mjs --agent",
+    "smoke:attachments": "bun run build && node scripts/smoke-attachments.mjs"
   },
   "keywords": [
     "mcp",
