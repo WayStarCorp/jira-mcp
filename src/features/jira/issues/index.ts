@@ -20,6 +20,7 @@ export * from "./validators/issue-transition.validator";
 export * from "./validators/worklog.validator";
 export * from "./validators/issue-comment.validator";
 export * from "./validators/custom-field.validator";
+export * from "./validators/epic.validator";
 export * from "./validators/issue-link.validator";
 
 // Validator Errors
@@ -39,8 +40,11 @@ export * from "./formatters/issues-list.formatter";
 export * from "./formatters/comments.formatter";
 export * from "./formatters/custom-field.formatter";
 export * from "./formatters/issue-list.formatter";
-export * from "./formatters/worklog.formatter";
 export * from "./formatters/issue-link.formatter";
+export * from "./formatters/worklog.formatter";
+export * from "./formatters/epic-info.formatter";
+export * from "./formatters/epic-relation-action.formatter";
+export * from "./formatters/issue-type-change.formatter";
 
 // Use Cases
 export * from "./use-cases/add-issue-comment.use-case";
@@ -54,6 +58,12 @@ export * from "./use-cases/search-issues.use-case";
 export * from "./use-cases/transition.use-cases";
 export * from "./use-cases/update-issue.use-case";
 export * from "./use-cases/worklog.use-cases";
+export * from "./use-cases/epic-relation-resolver";
+export * from "./use-cases/get-epic-info.use-case";
+export * from "./use-cases/set-issue-epic.use-case";
+export * from "./use-cases/remove-issue-epic.use-case";
+export * from "./use-cases/change-issue-type.use-case";
+export * from "./use-cases/unlink-issue.use-case";
 export * from "./use-cases/issue-link.use-case";
 
 // Handlers
@@ -72,4 +82,9 @@ export * from "./handlers/get-worklogs.handler";
 export * from "./handlers/update-worklog.handler";
 export * from "./handlers/delete-worklog.handler";
 export * from "./handlers/get-issue-link-types.handler";
+export * from "./handlers/get-epic-info.handler";
+export * from "./handlers/set-issue-epic.handler";
+export * from "./handlers/remove-issue-epic.handler";
+export * from "./handlers/change-issue-type.handler";
+export * from "./handlers/unlink-issue.handler";
 export * from "./handlers/link-issues.handler";

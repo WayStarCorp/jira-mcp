@@ -1,8 +1,10 @@
+import { AttachmentFormatter } from "@features/jira/attachments/formatters/attachment.formatter";
+import { mapIssueAttachments } from "@features/jira/attachments/models";
 import type { Formatter } from "@features/jira/shared/formatters/formatter.interface";
 /**
  * Issue formatter
  */
-import type { Issue } from "../models/issue.models";
+import type { Issue, IssueFields } from "../models/issue.models";
 import {
   IssueFieldValidator,
   hasDateInfo,
@@ -23,12 +25,14 @@ export class IssueFormatter implements Formatter<Issue, string> {
   private readonly headerFormatter: IssueHeaderFormatter;
   private readonly descriptionFormatter: IssueDescriptionFormatter;
   private readonly datesFormatter: IssueDatesFormatter;
+  private readonly attachmentFormatter: AttachmentFormatter;
 
   constructor() {
     this.fieldValidator = new IssueFieldValidator();
     this.headerFormatter = new IssueHeaderFormatter();
     this.descriptionFormatter = new IssueDescriptionFormatter();
     this.datesFormatter = new IssueDatesFormatter();
+    this.attachmentFormatter = new AttachmentFormatter();
   }
 
   format(issue: Issue): string {
@@ -36,62 +40,97 @@ export class IssueFormatter implements Formatter<Issue, string> {
       return "";
     }
 
-    // Validate issue structure using Zod schema
     const validationResult = validateIssue(issue);
-    if (!validationResult.success) {
+    if (
+      !validationResult.success ||
+      this.fieldValidator.hasEmptyFields(issue)
+    ) {
       return this.headerFormatter.formatFallbackHeader(issue.key || "");
     }
 
-    // Use original issue for compatibility with existing interfaces
-    const validatedIssue = issue;
+    return this.formatValidIssue(issue);
+  }
 
-    // Handle case where issue exists but fields is null or undefined
-    if (this.fieldValidator.hasEmptyFields(validatedIssue)) {
-      return this.headerFormatter.formatFallbackHeader(
-        validatedIssue.key || "",
-      );
-    }
-
-    // Get safe field values using schema validation
-    const safeValues = this.fieldValidator.getSafeFieldValues(validatedIssue);
-
-    // Build the formatted output using extracted formatters
-    let markdown = "";
-
-    // Title and basic info
-    markdown += this.headerFormatter.formatTitle(
+  private formatValidIssue(issue: Issue): string {
+    const safeValues = this.fieldValidator.getSafeFieldValues(issue);
+    let markdown = this.headerFormatter.formatTitle(
       safeValues.key,
       safeValues.summary,
     );
-    markdown += this.headerFormatter.formatBasicInfo(
+
+    markdown += this.formatBasicInfo(issue, safeValues);
+    markdown += this.headerFormatter.formatIssueLinksSnippet(
+      issue.fields?.issuelinks ?? undefined,
+    );
+    markdown += this.formatDescription(issue);
+    markdown += this.formatLabels(issue);
+    markdown += this.formatDates(issue);
+    markdown += this.formatJiraLink(issue);
+    markdown += this.formatAttachments(issue);
+
+    return markdown;
+  }
+
+  private formatBasicInfo(
+    issue: Issue,
+    safeValues: ReturnType<IssueFieldValidator["getSafeFieldValues"]>,
+  ): string {
+    const { fields } = issue;
+    const issueTypeName = fields?.issuetype?.name ?? "Unknown";
+    const parentKey = this.getParentKey(fields?.parent);
+
+    return this.headerFormatter.formatBasicInfo(
       safeValues.status,
       safeValues.priority,
       safeValues.assignee,
+      {
+        issueType: issueTypeName,
+        parentKey,
+      },
     );
+  }
 
-    // Description - use schema-based validation
-    if (hasValidDescription(validatedIssue)) {
-      markdown += this.descriptionFormatter.formatDescription(validatedIssue);
+  private getParentKey(parent: IssueFields["parent"]): string | undefined {
+    if (parent == null || typeof parent !== "object") {
+      return undefined;
     }
+    return parent.key;
+  }
 
-    // Labels - use schema-based validation
-    if (hasLabels(validatedIssue)) {
-      markdown += this.headerFormatter.formatLabels(
-        validatedIssue.fields?.labels || [],
-      );
+  private formatDescription(issue: Issue): string {
+    if (!hasValidDescription(issue)) {
+      return "";
     }
+    return this.descriptionFormatter.formatDescription(issue);
+  }
 
-    // Dates - use schema-based validation
-    if (hasDateInfo(validatedIssue)) {
-      markdown += this.datesFormatter.formatDates(validatedIssue);
+  private formatLabels(issue: Issue): string {
+    if (!hasLabels(issue)) {
+      return "";
     }
+    return this.headerFormatter.formatLabels(issue.fields?.labels || []);
+  }
 
-    // JIRA link - use schema-based validation
-    if (hasValidSelfUrl(validatedIssue)) {
-      markdown += this.headerFormatter.formatJiraLink(validatedIssue);
+  private formatDates(issue: Issue): string {
+    if (!hasDateInfo(issue)) {
+      return "";
     }
+    return this.datesFormatter.formatDates(issue);
+  }
 
-    return markdown;
+  private formatJiraLink(issue: Issue): string {
+    if (!hasValidSelfUrl(issue)) {
+      return "";
+    }
+    return this.headerFormatter.formatJiraLink(issue);
+  }
+
+  private formatAttachments(issue: Issue): string {
+    const attachments = mapIssueAttachments(issue.fields?.attachment);
+    if (attachments.length === 0) {
+      return "";
+    }
+    return `\n\n${this.attachmentFormatter.formatIssueAttachmentsSection(attachments)}`;
   }
 
   /**
@@ -109,12 +148,12 @@ export class IssueFormatter implements Formatter<Issue, string> {
     }
 
     // Use original issue for compatibility with existing interfaces
-    const fields = issue.fields;
+    const { id, key, self, fields } = issue;
 
     return {
-      id: issue.id,
-      key: issue.key,
-      self: issue.self,
+      id,
+      key,
+      self,
       fields: {
         summary: fields.summary,
         description: fields.description,

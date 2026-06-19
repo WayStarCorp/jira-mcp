@@ -36,6 +36,7 @@ describe("ProjectRepositoryImpl", () => {
       sendRequest: mock() as Mock<
         (options: HttpRequestOptions) => Promise<ProjectSearchResponse>
       >,
+      downloadBinary: mock(() => Promise.resolve(new ArrayBuffer(0))),
       getBaseUrl: mock(() => "https://test.atlassian.net"),
     } as HttpClient;
 

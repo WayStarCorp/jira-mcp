@@ -13,12 +13,25 @@ import {
 import { GetIssueCommentsHandler } from "@features/jira/issues/handlers/get-issue-comments.handler";
 import type { Comment } from "@features/jira/issues/models/comment.models";
 import type { GetIssueCommentsUseCase } from "@features/jira/issues/use-cases";
+import type { CommentsWithAttachments } from "@features/jira/issues/use-cases/get-issue-comments.use-case";
 import type { IssueCommentValidator } from "@features/jira/issues/validators";
 import { jiraApiMocks } from "@test/utils/mock-helpers";
 import { setupTests } from "@test/utils/test-setup";
 
 // Setup test environment
 setupTests();
+
+function commentsWithAttachments(
+  comments: Comment[],
+  attachments: CommentsWithAttachments["attachments"] = [],
+  totalComments?: number,
+): CommentsWithAttachments {
+  return {
+    comments,
+    attachments,
+    totalComments: totalComments ?? comments.length,
+  };
+}
 
 describe("GetIssueCommentsHandler", () => {
   // Mock dependencies
@@ -57,7 +70,9 @@ describe("GetIssueCommentsHandler", () => {
   beforeEach(() => {
     // Create mocks
     mockUseCase = {
-      execute: mock(() => Promise.resolve(mockComments)),
+      execute: mock(() =>
+        Promise.resolve(commentsWithAttachments(mockComments)),
+      ),
     };
 
     mockValidator = {
@@ -91,7 +106,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return a single comment
-      mockUseCase.execute = mock(() => Promise.resolve(singleComment));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(singleComment)),
+      );
 
       const result = (await handler.handle({
         issueKey: "TEST-123",
@@ -141,7 +158,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return multiple comments
-      mockUseCase.execute = mock(() => Promise.resolve(multipleComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(multipleComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "TEST-456",
@@ -166,7 +185,9 @@ describe("GetIssueCommentsHandler", () => {
       const emptyComments: Comment[] = [];
 
       // Setup mock use case to return empty comments array
-      mockUseCase.execute = mock(() => Promise.resolve(emptyComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(emptyComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "EMPTY-1",
@@ -184,6 +205,37 @@ describe("GetIssueCommentsHandler", () => {
       );
     });
 
+    it("should show issue total when fewer comments are returned than exist on issue", async () => {
+      const displayedComments: Comment[] = Array.from(
+        { length: 3 },
+        (_, i) => ({
+          id: `${i + 1}`,
+          self: `https://test.atlassian.net/rest/api/3/issue/123/comment/${i + 1}`,
+          author: {
+            displayName: `User ${i + 1}`,
+            accountId: `user-${i + 1}`,
+          },
+          body: `Comment ${i + 1}`,
+          created: "2024-01-15T10:30:00.000Z",
+          updated: "2024-01-15T10:30:00.000Z",
+        }),
+      );
+
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(displayedComments, [], 50)),
+      );
+
+      const result = (await handler.handle({
+        issueKey: "TEST-789",
+        maxComments: 3,
+      })) as McpResponse<string>;
+
+      expect(result.success).toBe(true);
+      expect(result.data).toContain("**Total:** 50 comments");
+      expect(result.data).toContain("**Showing:** 3");
+      expect(result.data).toContain("to see 47 more comments");
+    });
+
     it("should respect maxComments parameter", async () => {
       const manyComments: Comment[] = Array.from({ length: 5 }, (_, i) => ({
         id: `${i + 1}`,
@@ -199,7 +251,7 @@ describe("GetIssueCommentsHandler", () => {
 
       // Setup mock use case to return limited comments
       mockUseCase.execute = mock(() =>
-        Promise.resolve(manyComments.slice(0, 3)),
+        Promise.resolve(commentsWithAttachments(manyComments.slice(0, 3))),
       );
 
       const result = (await handler.handle({
@@ -247,7 +299,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return ordered comments
-      mockUseCase.execute = mock(() => Promise.resolve(orderedComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(orderedComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "ORDER-1",
@@ -284,7 +338,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return filtered comments
-      mockUseCase.execute = mock(() => Promise.resolve(filteredComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(filteredComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "FILTER-1",
@@ -319,7 +375,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return date-filtered comments
-      mockUseCase.execute = mock(() => Promise.resolve(recentComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(recentComments)),
+      );
 
       const dateRange = {
         from: "2024-01-15T00:00:00.000Z",
@@ -359,7 +417,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return public comments only
-      mockUseCase.execute = mock(() => Promise.resolve(publicComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(publicComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "INTERNAL-1",
@@ -406,7 +466,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return all comments
-      mockUseCase.execute = mock(() => Promise.resolve(allComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(allComments)),
+      );
 
       const result = (await handler.handle({
         issueKey: "INTERNAL-2",
@@ -648,7 +710,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return filtered comments
-      mockUseCase.execute = mock(() => Promise.resolve(filteredComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(filteredComments)),
+      );
 
       const params = {
         issueKey: "COMBINED-1",
@@ -687,7 +751,9 @@ describe("GetIssueCommentsHandler", () => {
       ];
 
       // Setup mock use case to return filtered comments
-      mockUseCase.execute = mock(() => Promise.resolve(filteredComments));
+      mockUseCase.execute = mock(() =>
+        Promise.resolve(commentsWithAttachments(filteredComments)),
+      );
 
       const params = {
         issueKey: "EMAIL-1",

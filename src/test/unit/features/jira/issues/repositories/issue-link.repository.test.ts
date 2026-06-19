@@ -113,4 +113,31 @@ describe("IssueLinkRepositoryImpl", () => {
       ],
     });
   });
+
+  it("deletes issue link by id", async () => {
+    sendRequestMock.mockResolvedValue(undefined);
+
+    await repository.deleteIssueLink("12345");
+
+    const request = sendRequestMock.mock.calls[0][0] as {
+      endpoint: string;
+      method: string;
+    };
+    expect(request.endpoint).toBe("issueLink/12345");
+    expect(request.method).toBe("DELETE");
+  });
+
+  it("encodes link id in delete path when characters need escaping", async () => {
+    sendRequestMock.mockResolvedValue(undefined);
+
+    const linkId = "10001/with space&";
+    await repository.deleteIssueLink(linkId);
+
+    const request = sendRequestMock.mock.calls[0][0] as {
+      endpoint: string;
+      method: string;
+    };
+    expect(request.endpoint).toBe(`issueLink/${encodeURIComponent(linkId)}`);
+    expect(request.method).toBe("DELETE");
+  });
 });

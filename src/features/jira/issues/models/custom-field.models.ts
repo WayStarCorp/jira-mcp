@@ -16,6 +16,18 @@ export interface CustomFieldSchema {
   customId?: number;
 }
 
+/**
+ * One field entry from Jira `GET issue/{key}/editmeta` (system or custom).
+ */
+export interface IssueEditMetaField {
+  key?: string;
+  name?: string;
+  required?: boolean;
+  operations?: string[];
+  schema?: CustomFieldSchema;
+  custom?: boolean;
+}
+
 export interface CustomFieldMetadata {
   fieldId: string;
   key: string;

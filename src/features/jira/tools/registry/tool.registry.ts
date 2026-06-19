@@ -16,6 +16,7 @@ import type {
 } from "../types";
 
 import {
+  createAttachmentToolsConfig,
   createBoardToolsConfig,
   createIssueToolsConfig,
   createProjectToolsConfig,
@@ -74,8 +75,13 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
         jira_create_issue: tools.jira_create_issue,
         jira_transition_issue: tools.jira_transition_issue,
         jira_update_issue: tools.jira_update_issue,
+        jira_change_issue_type: tools.jira_change_issue_type,
         jira_get_issue_link_types: tools.jira_get_issue_link_types,
         jira_link_issues: tools.jira_link_issues,
+        jira_get_epic_info: tools.jira_get_epic_info,
+        jira_set_issue_epic: tools.jira_set_issue_epic,
+        jira_remove_issue_epic: tools.jira_remove_issue_epic,
+        jira_unlink_issue: tools.jira_unlink_issue,
         jira_search_issues: tools.jira_search_issues,
       }),
     },
@@ -114,6 +120,13 @@ export function getToolConfigGroups(tools: JiraTools): ToolConfigGroup[] {
         jira_search_users: tools.jira_search_users,
         jira_get_assignable_users: tools.jira_get_assignable_users,
         jira_assign_issue: tools.jira_assign_issue,
+      }),
+    },
+    {
+      groupName: "attachments",
+      configs: createAttachmentToolsConfig({
+        jira_get_issue_attachments: tools.jira_get_issue_attachments,
+        jira_download_attachment: tools.jira_download_attachment,
       }),
     },
   ];

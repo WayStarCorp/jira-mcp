@@ -1,11 +1,77 @@
 # Changelog
 
-All notable changes to the JIRA MCP Server will be documented in this file.
+All notable changes to the Jira MCP Server will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.0] - 2026-05-25
+
+Attachments and inline ADF media: list metadata, download images/text safely, and surface file references in issue and comment markdown. **31** MCP tools (was 29).
+
+### 🆕 Added — 0.7.0
+
+- **`jira_get_issue_attachments`**: List `fields.attachment[]` metadata for an issue (filename, mimeType, size, author, id) without downloading bytes.
+- **`jira_download_attachment`**: Download by attachment id; images return MCP **`ImageContent`**; `text/*` and `application/json` return decoded text; other types return metadata only in v0.7.0.
+
+### ✨ Enhanced
+
+- **`jira_get_issue`**: Markdown **Attachments** section from `fields.attachment[]`; description uses **`parseADFWithMedia`** with an **Inline media** block when ADF contains `media` nodes (hints to download by attachment id when id-bridge matches).
+- **`jira_get_issue_comments`**: Inline media enrichment in comment bodies using issue attachment metadata and the same ADF media parsing.
+
+### 🔧 Technical — 0.7.0
+
+- **`McpResponse.content`**: Optional MCP content array; **`adaptToMcpContent`** passthrough when set (legacy text path unchanged).
+- **`downloadBinary`**: Host allowlist and size cap on attachment `content` URLs (SSRF mitigation).
+- **`parseADFWithMedia`**: ADF parser extension for `media` / `mediaSingle` / `mediaGroup` without breaking string-only **`parseADF`**.
+- **`AttachmentTooLargeError`**, **`attachments/`** domain (repository, use-cases, handlers, formatters).
+
+### 🧪 Tests — 0.7.0
+
+- Unit coverage for attachment handlers, repository, formatters, ADF media parsing, MCP adapter passthrough, and issue/comments integration.
+
+### 📖 Documentation — 0.7.0
+
+- README: attachments feature bullets, **31**-tool note, **What's New in v0.7.0**, tool table and list → download workflow, **ImageContent** for MCP clients.
+
+## [0.6.1] - 2026-05-15
+
+Epic/hierarchy MCP tools, issue-type change, generic link unlink, richer issue markdown, and **`jira_get_epic_info` auto children** merge (parent + Classic Epic Link with dedupe and `maxChildren`).
+
+### 🐛 Fixed — 0.6.1
+
+- **`jira_get_epic_info`**: `relationMode: auto` + `includeChildren` now loads children from **both** parent hierarchy and Epic Link JQL when the Epic Link `customfield_*` is known, merges and dedupes by issue key, then sorts by `updated` (desc) before applying `maxChildren`. Previously, a non-empty parent-only result skipped Epic Link and could omit Epic-Link-only children. **Semantics**: two capped searches (each up to `maxChildren`) then merge/sort/slice—the resulting top N by `updated` can differ from a single global JQL; intentional for API limits.
+- **`jira_get_epic_info`**: `includeChildren` with `relationMode: epicLink` no longer throws when no Epic Link `customfield_*` is known; returns an empty children list instead.
+
+### 🆕 Added — 0.6.1
+
+- **Epic & hierarchy tools**: `jira_get_epic_info`, `jira_set_issue_epic`, `jira_remove_issue_epic` with `relationMode` `auto|parent|epicLink` and optional `epicFieldId` (no hardcoded custom field IDs in code paths).
+- **`jira_change_issue_type`**: change `issuetype` with `validateOnly`, `requiredFields`, and `customFields` resolution aligned with `jira_update_issue`.
+- **`jira_unlink_issue`**: delete generic issue links by REST `linkId` (`DELETE issueLink/{id}`).
+- **Issue output**: `jira_get_issue` / `search_jira_issues` markdown includes **Type**, parent, and a short **Issue links** snippet when present.
+
+### ⚠️ Compatibility — 0.6.1
+
+- Markdown returned for single-issue and search views **may change** if clients parse the raw template (new sections: type, parent, links summary). Intended for humans and stable field semantics, not brittle string parsers.
+
+### 🧪 Tests — 0.6.1
+
+- Unit tests for `EpicRelationResolver`, epic set/remove/change-type/unlink use cases, `get-epic-info`, validator refinements, mixed parent + Epic Link children in auto mode, and `UnlinkIssueHandler`.
+
+### 📖 Documentation — 0.6.1
+
+- README: Sprint section — current sprint via `state:"active"`, optional `boardId`, agent workflow, `maxResults` cap, add-to-sprint edge cases; tool table + feature bullets; MCP tool descriptions in `sprint-tools.config.ts`.
+- README: Epic management section (parent vs Epic Link vs generic links), `jira_get_epic_info` auto merge behavior, note on markdown output stability.
+- Prior: Clarified `jira_create_issue` `parentIssueKey` vs Epic Link (`customFields`) for company-managed Jira; extended tool and field descriptions and README.
+- **`jira_change_issue_type`**: Clarified for MCP consumers that the tool JSON Schema exposes `issueTypeName` and `issueTypeId` as separate optional fields without an XOR/oneOf; **exactly one** must be supplied at runtime (unless `validateOnly:true`). Codegen and UI layers should encode that rule even when generating from schema alone.
+- **`jira_get_epic_info`**: Documented `relationMode:auto` + `includeChildren` when Classic Epic Link `customfield_*` is not resolved—children load from **parent** JQL only until `epicFieldId` or metadata resolves Epic Link; markdown includes a **parent-only** footnote when applicable.
+- **README**: Epic Link field detection heuristics (`EpicRelationResolver`) and when to pass explicit `epicFieldId`.
+
+### 🔧 Technical — 0.6.1
+
+- **`unlinkIssueParamsSchema`** moved from `epic.validator.ts` to `issue-link.validator.ts` (behavior unchanged).
 
 ## [0.6.0] - 2026-04-29
 
@@ -73,8 +139,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Critical Bug Fixes — 0.5.3
 
-- **🚨 JIRA Worklog Description Format Fixed**: Resolved critical bug where worklog creation failed when descriptions were provided
-  - **Issue**: JIRA API requires worklog comments to be in ADF (Atlassian Document Format) instead of plain strings
+- **🚨 Jira Worklog Description Format Fixed**: Resolved critical bug where worklog creation failed when descriptions were provided
+  - **Issue**: Jira API requires worklog comments to be in ADF (Atlassian Document Format) instead of plain strings
   - **Error**: Worklog creation worked without description but failed when description was sent as plain string
   - **Fix**: Updated WorklogRepository to convert string comments to ADF format using existing `textToADF()` function
   - **Impact**: Users can now successfully add worklog entries with descriptions/comments
@@ -82,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Technical Details — 0.5.3
 
-- **Root Cause**: JIRA worklog API expects comments in ADF format, not plain text strings
+- **Root Cause**: Jira worklog API expects comments in ADF format, not plain text strings
 - **Solution**: Integrated existing ADF parser to convert string comments to proper ADF document structure
 - **ADF Format**: Converts plain text to `{"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"type":"text","text":"..."}]}]}`
 - **Backward Compatibility**: Maintains full compatibility - string inputs automatically converted to ADF
@@ -92,19 +158,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Before**: Worklog creation failed with descriptions, forcing users to create worklogs without comments
 - **After**: Full worklog functionality with rich text descriptions working seamlessly
-- **API Consistency**: Worklog comments now properly display in JIRA UI as descriptions
+- **API Consistency**: Worklog comments now properly display in Jira UI as descriptions
 - **Developer Experience**: Transparent ADF conversion - developers can still use simple strings
 
 ## [0.5.2] - 2025-06-05
 
 ### 🐛 Critical Bug Fixes — 0.5.2
 
-- **🚨 JIRA Permission Validation Fixed**: Resolved critical bug where MCP-JIRA incorrectly reported permission failures
-  - **Issue**: Tool was using wrong JIRA REST API endpoint `/rest/api/3/user/permission/search` for permission checking
+- **🚨 Jira Permission Validation Fixed**: Resolved critical bug where MCP-Jira incorrectly reported permission failures
+  - **Issue**: Tool was using wrong Jira REST API endpoint `/rest/api/3/user/permission/search` for permission checking
   - **Error**: Users with correct permissions (CREATE_ISSUES, EDIT_ISSUES) were getting false permission denied errors
   - **Fix**: Updated to correct endpoint `/rest/api/3/mypermissions` in ProjectPermissionRepository and ProjectRepository
-  - **Impact**: Users can now successfully create and edit JIRA issues when they have proper permissions
-  - **Verification**: Tested with real JIRA instance - permissions now correctly detected as GRANTED
+  - **Impact**: Users can now successfully create and edit Jira issues when they have proper permissions
+  - **Verification**: Tested with real Jira instance - permissions now correctly detected as GRANTED
   - **Location**: `src/features/jira/projects/repositories/project-permission.repository.ts`, `src/features/jira/projects/repositories/project.repository.ts`
 
 ### 📋 Quality Assurance
@@ -113,21 +179,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Linting**: All Biome linting issues fixed
 - **Test Coverage**: 824/824 unit tests passing
 - **Integration Testing**: 15 integration tests with proper credential validation
-- **Real JIRA Testing**: Verified fix with live JIRA instance (SEC project)
+- **Real Jira Testing**: Verified fix with live Jira instance (SEC project)
 
 ### 🔍 Root Cause Analysis
 
-- **Problem**: JIRA Cloud API endpoint mismatch in permission validation
-- **Detection**: User reported permission failures despite having correct JIRA permissions
-- **Solution**: Updated API endpoints to use JIRA's standard `/mypermissions` endpoint
+- **Problem**: Jira Cloud API endpoint mismatch in permission validation
+- **Detection**: User reported permission failures despite having correct Jira permissions
+- **Solution**: Updated API endpoints to use Jira's standard `/mypermissions` endpoint
 - **Prevention**: Added integration tests to catch similar API endpoint issues
 
 ## [0.5.1] - 2025-06-05
 
 ### 🐛 Critical Bug Fixes — 0.5.1
 
-- **🚨 JIRA Projects API Pagination Fixed**: Resolved `projects.map is not a function` error
-  - **Issue**: JIRA `/project/search` API returns paginated responses with `{values: [...]}` structure
+- **🚨 Jira Projects API Pagination Fixed**: Resolved `projects.map is not a function` error
+  - **Issue**: Jira `/project/search` API returns paginated responses with `{values: [...]}` structure
   - **Error**: Code expected direct arrays, causing `projects.map is not a function` when using `jira_get_projects`
   - **Fix**: Updated ProjectRepository to properly extract `values` array from paginated responses
   - **Impact**: Users can now successfully use `jira_get_projects` and `jira_get_projects searchQuery="..."` commands
@@ -135,7 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Technical Details — 0.5.1
 
-- **Root Cause**: JIRA API pagination structure mismatch in projects repository
+- **Root Cause**: Jira API pagination structure mismatch in projects repository
 - **Solution**: Added `PaginatedResponse<T>` and `ProjectSearchResponse` interfaces with proper value extraction
 - **Validation**: All 829 tests passing with comprehensive coverage across all domains
 - **Testing**: Enhanced mock factories and repository test coverage
@@ -168,23 +234,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Critical Fixes
 
-- **URL Construction Bug**: Fixed malformed JIRA API URLs that prevented proper communication with JIRA Cloud
+- **URL Construction Bug**: Fixed malformed Jira API URLs that prevented proper communication with Jira Cloud
 - **Enhanced Error Handling**: Improved error classification with actionable solutions
 
 ## [0.4.1] - 2025-06-04
 
 ### 🐛 Critical Bug Fixes — 0.4.1
 
-- **🚨 JIRA Issue Creation Fixed**: Resolved critical bug preventing JIRA issue creation
-  - **Issue**: JIRA Cloud API now requires `permissions` query parameter for `mypermissions` endpoint
+- **🚨 Jira Issue Creation Fixed**: Resolved critical bug preventing Jira issue creation
+  - **Issue**: Jira Cloud API now requires `permissions` query parameter for `mypermissions` endpoint
   - **Error**: `JiraApiError: The 'permissions' query parameter is required.`
   - **Fix**: Added `permissions: "CREATE_ISSUES"` parameter to project validation API call
-  - **Impact**: Users can now successfully create JIRA issues through MCP integration
+  - **Impact**: Users can now successfully create Jira issues through MCP integration
   - **Location**: `src/features/jira/api/jira.client.impl.ts` - `validateProject` method
 
 ### 🔧 Technical Details — 0.4.1
 
-- **Root Cause**: JIRA Cloud API policy change requiring explicit permission specification
+- **Root Cause**: Jira Cloud API policy change requiring explicit permission specification
 - **Solution**: Updated `mypermissions` endpoint call to include required `permissions` parameter
 - **Validation**: Verified fix with TypeScript compilation and build process
 - **Testing**: Confirmed no regression in existing functionality
@@ -200,14 +266,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 Major Features
 
-- **🆕 Complete JIRA Issue Management Suite**: Full CRUD operations for JIRA issues
+- **🆕 Complete Jira Issue Management Suite**: Full CRUD operations for Jira issues
 
   - `jira_create_issue`: Create new issues with comprehensive field support
   - `jira_update_issue`: Update existing issues with field changes, status transitions, and worklog entries
   - Advanced field support including custom fields, time tracking, and array operations
 
-- **📊 Project & Board Management**: Comprehensive JIRA workspace navigation
-  - `jira_get_projects`: Browse and discover JIRA projects with filtering options
+- **📊 Project & Board Management**: Comprehensive Jira workspace navigation
+  - `jira_get_projects`: Browse and discover Jira projects with filtering options
   - `jira_get_boards`: Access Scrum and Kanban boards with advanced filtering
   - `jira_get_sprints`: Sprint management for agile project workflows
 
@@ -215,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **🎯 Advanced Issue Creation**:
 
-  - Support for all standard JIRA fields (priority, assignee, labels, components, versions)
+  - Support for all standard Jira fields (priority, assignee, labels, components, versions)
   - Time tracking integration (estimates, due dates)
   - Custom field support for organization-specific workflows
   - ADF format support for rich descriptions
@@ -279,7 +345,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📈 Performance & Reliability
 
-- **Optimized API Calls**: Efficient JIRA API usage with proper pagination
+- **Optimized API Calls**: Efficient Jira API usage with proper pagination
 - **Memory Management**: Improved resource handling in long-running operations
 - **Error Recovery**: Better error handling and recovery mechanisms
 - **Validation Performance**: Fast parameter validation with detailed feedback
@@ -288,7 +354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added — 0.3.1
 
-- **💬 JIRA Issue Comments Retrieval**: New jira_get_issue_comments tool with progressive disclosure parameters, advanced filtering, and rich formatting
+- **💬 Jira Issue Comments Retrieval**: New jira_get_issue_comments tool with progressive disclosure parameters, advanced filtering, and rich formatting
 - **🎨 Comments Formatting System**: Structured markdown display with ADF parsing and context-aware formatting
 
 ### Improved — 0.3.1
@@ -337,7 +403,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Description Parsing**: Resolved issue where complex JIRA descriptions appeared as "[object Object]"
+- **Description Parsing**: Resolved issue where complex Jira descriptions appeared as "[object Object]"
 - **Search Validation**: Proper parameter validation with clear error messages
 - **Quote Escaping**: Fixed JQL text search parameter escaping for special characters
 
@@ -352,7 +418,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
-- Basic JIRA issue retrieval
+- Basic Jira issue retrieval
 - Assigned issues listing
-- Local task creation from JIRA issues
+- Local task creation from Jira issues
 - MCP server implementation

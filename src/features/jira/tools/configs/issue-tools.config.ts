@@ -7,16 +7,21 @@
 import type { ToolConfig, ToolHandler } from "@core/tools";
 import {
   addIssueCommentSchema,
-  getIssueCustomFieldMetadataParamsSchema,
+  changeIssueTypeParamsObjectSchema,
   createIssueParamsSchema,
+  getEpicInfoParamsSchema,
   getIssueCommentsSchema,
+  getIssueCustomFieldMetadataParamsSchema,
   getIssueLinkTypesParamsSchema,
   getIssueTransitionsParamsSchema,
   issueKeySchema,
   linkIssuesFieldsSchema,
+  removeIssueEpicParamsSchema,
   searchJiraIssuesBaseSchema,
-  workflowTransitionIssueFieldsSchema,
+  setIssueEpicParamsSchema,
+  unlinkIssueParamsSchema,
   updateIssueParamsSchema,
+  workflowTransitionIssueFieldsSchema,
 } from "../../issues";
 
 /**
@@ -36,6 +41,11 @@ export function createIssueToolsConfig(tools: {
   jira_update_issue: ToolHandler;
   jira_get_issue_link_types: ToolHandler;
   jira_link_issues: ToolHandler;
+  jira_get_epic_info: ToolHandler;
+  jira_set_issue_epic: ToolHandler;
+  jira_remove_issue_epic: ToolHandler;
+  jira_change_issue_type: ToolHandler;
+  jira_unlink_issue: ToolHandler;
   jira_search_issues: ToolHandler;
 }): ToolConfig[] {
   return [
@@ -77,11 +87,18 @@ export function createIssueToolsConfig(tools: {
     {
       name: "jira_get_issue_custom_field_metadata",
       description:
-        "Lists custom field metadata for a specific Jira issue, including field ids, names, types, operations, and allowed values. Use this to discover what jira_update_issue expects for customFields.",
+        "Lists custom field metadata for a specific Jira issue, including field ids, names, types, operations, and allowed values. Use this to discover field ids for jira_update_issue and jira_create_issue customFields (e.g. Epic Link vs parentIssueKey).",
       params: getIssueCustomFieldMetadataParamsSchema.shape,
       handler: tools.jira_get_issue_custom_field_metadata.handle.bind(
         tools.jira_get_issue_custom_field_metadata,
       ),
+    },
+    {
+      name: "jira_get_epic_info",
+      description:
+        "Shows issue type (whether issuetype name matches the configured Epic label, default English Epic), current parent hierarchy, Epic Link value when discoverable, generic issue links, and optional children (JQL). Optional epicIssuetypeName aligns Epic detection with localized Jira type names. Use relationMode: auto|parent|epicLink; pass epicFieldId (customfield_*) when Jira has multiple epic link-like fields or Classic Epic Link is off the default edit screen. With includeChildren and relationMode:auto on an Epic-shaped issue: if no Classic Epic Link customfield_* id is resolved (and probing editmeta does not yield a single candidate), children are loaded via parent JQL only — issues linked only through Epic Link may be missing until epicFieldId or metadata resolves the field; when the list is parent-only, the markdown report includes an explicit footnote.",
+      params: getEpicInfoParamsSchema.shape,
+      handler: tools.jira_get_epic_info.handle.bind(tools.jira_get_epic_info),
     },
     {
       name: "jira_transition_issue",
@@ -92,7 +109,8 @@ export function createIssueToolsConfig(tools: {
     },
     {
       name: "jira_create_issue",
-      description: "Creates a new JIRA issue with specified parameters",
+      description:
+        "Creates a new JIRA issue. parentIssueKey maps to REST fields.parent (sub-task / hierarchy); on company-managed Jira, link issues to an epic via customFields using the Epic Link customfield id and epic key string — use jira_get_issue_custom_field_metadata if unsure.",
       params: createIssueParamsSchema.shape,
       handler: tools.jira_create_issue.handle.bind(tools.jira_create_issue),
     },
@@ -104,6 +122,15 @@ export function createIssueToolsConfig(tools: {
         "For user-picker custom fields or ambiguous fields, use jira_get_issue_custom_field_metadata first to inspect the exact schema.",
       params: updateIssueParamsSchema.shape,
       handler: tools.jira_update_issue.handle.bind(tools.jira_update_issue),
+    },
+    {
+      name: "jira_change_issue_type",
+      description:
+        "Change an issue's issuetype via fields.issuetype (name or id). Unless validateOnly:true, provide exactly one of issueTypeName or issueTypeId (not both, not neither). Use validateOnly:true to check editmeta without updating. If Jira requires extra transition-screen fields, pass requiredFields and/or customFields (same resolution as jira_update_issue). Do not use the same REST field key in both requiredFields and customFields — the server rejects overlaps with a validation error. Jira may still require a UI Move on some instances — the error text will surface that. Important for MCP clients: the published tool JSON Schema lists issueTypeName and issueTypeId as separate optional properties with no oneOf/XOR — code generators or UIs that build requests from that schema alone must still send exactly one of them; the server validates this at call time and returns a clear error if both or neither are set.",
+      params: changeIssueTypeParamsObjectSchema.shape,
+      handler: tools.jira_change_issue_type.handle.bind(
+        tools.jira_change_issue_type,
+      ),
     },
     {
       name: "jira_get_issue_link_types",
@@ -120,6 +147,29 @@ export function createIssueToolsConfig(tools: {
         "Creates a directional link between two Jira issues. linkTypeName must match a name from jira_get_issue_link_types. inwardIssueKey is the issue on the receiving end; outwardIssueKey initiates the link.",
       params: linkIssuesFieldsSchema.shape,
       handler: tools.jira_link_issues.handle.bind(tools.jira_link_issues),
+    },
+    {
+      name: "jira_set_issue_epic",
+      description:
+        "Attach a child issue to an epic using fields.parent (hierarchy / team-managed) or Classic Epic Link (customfield_*). relationMode auto inspects editmeta (parent preferred unless epicFieldId forces Epic Link). validateEpicType checks the target issue's issuetype.name matches epicIssuetypeName (default English Epic, case-insensitive); set validateEpicType:false to skip, or set epicIssuetypeName to your localized Epic type label. For epic / parent removal, use jira_remove_issue_epic instead of generic links.",
+      params: setIssueEpicParamsSchema.shape,
+      handler: tools.jira_set_issue_epic.handle.bind(tools.jira_set_issue_epic),
+    },
+    {
+      name: "jira_remove_issue_epic",
+      description:
+        "Clear epic association via parent (set null) or Epic Link custom field (set null). Does not delete generic issue links — use jira_unlink_issue with linkId from issuelinks for directional link types.",
+      params: removeIssueEpicParamsSchema.shape,
+      handler: tools.jira_remove_issue_epic.handle.bind(
+        tools.jira_remove_issue_epic,
+      ),
+    },
+    {
+      name: "jira_unlink_issue",
+      description:
+        "Deletes a generic issue link by REST link id (from fields.issuelinks). Not for hierarchy parent or Classic Epic Link — use jira_remove_issue_epic for epic membership.",
+      params: unlinkIssueParamsSchema.shape,
+      handler: tools.jira_unlink_issue.handle.bind(tools.jira_unlink_issue),
     },
     {
       name: "search_jira_issues",

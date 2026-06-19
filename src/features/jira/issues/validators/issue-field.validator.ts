@@ -6,13 +6,9 @@
  */
 import { z } from "zod";
 import type { Issue } from "../models/issue.models";
+import { issueKeySchema } from "./issue-params.validator";
 
-/**
- * Schema for JIRA issue keys
- */
-export const issueKeySchema = z
-  .string()
-  .regex(/^[A-Z]+-\d+$/, "Issue key must be in the format PROJECT-123");
+export { issueKeySchema };
 
 /**
  * Schema for User objects
@@ -32,6 +28,7 @@ export const userSchema = z
  */
 export const issueTypeSchema = z
   .object({
+    id: z.string().optional(),
     name: z.string().nullable(),
     iconUrl: z.string().optional().nullable(),
   })
@@ -96,6 +93,33 @@ export const issueDescriptionSchema = z
   .nullable()
   .optional();
 
+const issueLinkItemSchema = z.object({
+  id: z.string(),
+  type: z
+    .object({
+      name: z.string().nullable().optional(),
+      id: z.string().optional(),
+      inward: z.string().nullable().optional(),
+      outward: z.string().nullable().optional(),
+    })
+    .optional()
+    .nullable(),
+  inwardIssue: z
+    .object({
+      key: z.string().optional(),
+      id: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
+  outwardIssue: z
+    .object({
+      key: z.string().optional(),
+      id: z.string().optional(),
+    })
+    .optional()
+    .nullable(),
+});
+
 /**
  * Schema for issue fields
  */
@@ -104,6 +128,14 @@ export const issueFieldsSchema = z
     summary: z.string().nullable().optional(),
     description: issueDescriptionSchema,
     issuetype: issueTypeSchema,
+    parent: z
+      .object({
+        id: z.string().optional(),
+        key: z.string().optional(),
+      })
+      .optional()
+      .nullable(),
+    issuelinks: z.array(issueLinkItemSchema).nullable().optional(),
     status: issueStatusSchema,
     priority: issuePrioritySchema,
     assignee: userSchema,
@@ -164,6 +196,41 @@ export const isValidIssueFields = (
   return issueFieldsSchema.safeParse(data).success;
 };
 
+function hasValidDescriptionCore(issue: unknown): boolean {
+  const result = issueSchema.safeParse(issue);
+  if (!result.success) {
+    return false;
+  }
+
+  const { fields } = result.data;
+  if (!fields?.description) {
+    return false;
+  }
+
+  const { description } = fields;
+
+  if (typeof description === "object" && description !== null) {
+    const adfResult = adfDocumentSchema.safeParse(description);
+    if (adfResult.success) {
+      return !!(adfResult.data.content && adfResult.data.content.length > 0);
+    }
+    const contentResult = adfContentSchema.safeParse(description);
+    if (contentResult.success) {
+      return !!(
+        contentResult.data.content && contentResult.data.content.length > 0
+      );
+    }
+  }
+
+  if (typeof description === "string") {
+    return description.trim().length > 0;
+  }
+
+  return false;
+}
+
+export const hasValidDescription = hasValidDescriptionCore;
+
 /**
  * Validates issue fields and provides safe access to field values using Zod schemas
  */
@@ -192,34 +259,7 @@ export class IssueFieldValidator {
    * Check if description field has meaningful content using Zod schema validation
    */
   hasValidDescription(issue: Issue): boolean {
-    const result = issueSchema.safeParse(issue);
-    if (!result.success || !result.data.fields?.description) {
-      return false;
-    }
-
-    const description = result.data.fields.description;
-
-    // Handle ADF object descriptions
-    if (typeof description === "object" && description !== null) {
-      const adfResult = adfDocumentSchema.safeParse(description);
-      if (adfResult.success) {
-        return adfResult.data.content && adfResult.data.content.length > 0;
-      }
-      // Handle ADF content nodes
-      const contentResult = adfContentSchema.safeParse(description);
-      if (contentResult.success) {
-        return !!(
-          contentResult.data.content && contentResult.data.content.length > 0
-        );
-      }
-    }
-
-    // Handle string descriptions
-    if (typeof description === "string") {
-      return description.trim().length > 0;
-    }
-
-    return false;
+    return hasValidDescriptionCore(issue);
   }
 
   /**
@@ -282,11 +322,10 @@ export class IssueFieldValidator {
     }
 
     // Extract safe values from validated issue
-    const validatedIssue = issueValidation.data;
-    const fields = validatedIssue.fields;
+    const { fields, key } = issueValidation.data;
 
     const safeValues = {
-      key: validatedIssue.key || "",
+      key: key || "",
       summary: fields?.summary || "No Summary",
       status: fields?.status?.name || "Unknown",
       priority: fields?.priority?.name || "None",
@@ -317,37 +356,6 @@ export class IssueFieldValidator {
 }
 
 // Export standalone validation functions for external use
-export const hasValidDescription = (issue: unknown): boolean => {
-  const result = issueSchema.safeParse(issue);
-  if (!result.success || !result.data.fields?.description) {
-    return false;
-  }
-
-  const description = result.data.fields.description;
-
-  // Handle ADF object descriptions
-  if (typeof description === "object" && description !== null) {
-    const adfResult = adfDocumentSchema.safeParse(description);
-    if (adfResult.success) {
-      return adfResult.data.content && adfResult.data.content.length > 0;
-    }
-    // Handle ADF content nodes
-    const contentResult = adfContentSchema.safeParse(description);
-    if (contentResult.success) {
-      return !!(
-        contentResult.data.content && contentResult.data.content.length > 0
-      );
-    }
-  }
-
-  // Handle string descriptions
-  if (typeof description === "string") {
-    return description.trim().length > 0;
-  }
-
-  return false;
-};
-
 export const hasLabels = (issue: unknown): boolean => {
   const result = issueSchema.safeParse(issue);
   return !!(

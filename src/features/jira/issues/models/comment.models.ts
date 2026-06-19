@@ -40,6 +40,14 @@ export interface Comment {
 }
 
 /**
+ * Paginated comments response from Jira REST API
+ */
+export interface IssueCommentsPage {
+  comments: Comment[];
+  total: number;
+}
+
+/**
  * Options for retrieving comments
  */
 export interface GetCommentsOptions {

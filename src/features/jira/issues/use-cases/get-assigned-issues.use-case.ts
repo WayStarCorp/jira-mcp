@@ -60,6 +60,7 @@ export class GetAssignedIssuesUseCaseImpl implements GetAssignedIssuesUseCase {
         jql: "assignee = currentUser() ORDER BY updated DESC",
         fields: request?.fields || [
           "summary",
+          "issuetype",
           "status",
           "priority",
           "assignee",

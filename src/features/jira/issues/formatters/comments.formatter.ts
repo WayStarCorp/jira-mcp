@@ -3,9 +3,14 @@
  *
  * Formats JIRA comments for display
  */
+import { formatInlineMediaBlock } from "@features/jira/attachments/formatters/inline-media.formatter";
+import type { AttachmentMetadata } from "@features/jira/attachments/models";
 import type { Comment } from "@features/jira/issues/models/comment.models";
 import type { Formatter } from "@features/jira/shared";
-import { parseADF } from "@features/jira/shared/parsers/adf.parser";
+import {
+  parseADF,
+  parseADFWithMedia,
+} from "@features/jira/shared/parsers/adf.parser";
 
 /**
  * Interface for comments formatting context
@@ -22,13 +27,24 @@ export interface CommentsContext {
  */
 export class CommentsFormatter
   implements
-    Formatter<{ comments: Comment[]; context: CommentsContext }, string>
+    Formatter<
+      {
+        comments: Comment[];
+        context: CommentsContext;
+        attachments?: AttachmentMetadata[];
+      },
+      string
+    >
 {
   /**
    * Format comments array to structured markdown
    */
-  format(data: { comments: Comment[]; context: CommentsContext }): string {
-    const { comments, context } = data;
+  format(data: {
+    comments: Comment[];
+    context: CommentsContext;
+    attachments?: AttachmentMetadata[];
+  }): string {
+    const { comments, context, attachments = [] } = data;
 
     if (comments.length === 0) {
       return `# 💬 Comments for ${context.issueKey}\n\n**No comments found**\n\nThis issue doesn't have any comments yet.`;
@@ -54,7 +70,7 @@ export class CommentsFormatter
 
     // Format each comment
     comments.forEach((comment, index) => {
-      markdown += this.formatSingleComment(comment, index + 1);
+      markdown += this.formatSingleComment(comment, index + 1, attachments);
 
       // Add separator between comments (but not after the last one)
       if (index < comments.length - 1) {
@@ -74,7 +90,11 @@ export class CommentsFormatter
   /**
    * Format a single comment to markdown
    */
-  private formatSingleComment(comment: Comment, commentNumber: number): string {
+  private formatSingleComment(
+    comment: Comment,
+    commentNumber: number,
+    attachments: AttachmentMetadata[],
+  ): string {
     const author = comment.author?.displayName || "Unknown User";
     const createdDate = this.formatDate(comment.created);
 
@@ -105,11 +125,19 @@ export class CommentsFormatter
     }
 
     // Parse and add comment body content
-    if (comment.body) {
-      const bodyText = parseADF(comment.body);
-      commentMarkdown += bodyText.trim() || "_No content_";
-    } else {
+    const body = comment.body;
+    if (body == null) {
       commentMarkdown += "_No content_";
+    } else if (typeof body === "object") {
+      const { markdown, media } = parseADFWithMedia(body);
+      commentMarkdown += markdown.trim() || "_No content_";
+      const inlineBlock = formatInlineMediaBlock(media, attachments);
+      if (inlineBlock) {
+        commentMarkdown += `\n\n${inlineBlock}`;
+      }
+    } else {
+      const bodyText = parseADF(body);
+      commentMarkdown += bodyText.trim() || "_No content_";
     }
 
     return commentMarkdown;

@@ -8,6 +8,7 @@
 export { McpError } from "./mcp.error";
 export { ValidationError } from "./validation.error";
 export { HttpError } from "./http.error";
+export { AttachmentTooLargeError } from "./attachment-too-large.error";
 
 // Export HTTP error handling utilities
 export { BaseHttpErrorHandler, type ErrorResponse } from "./http-error.handler";

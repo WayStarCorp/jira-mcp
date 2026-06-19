@@ -11,9 +11,12 @@ import { JiraHttpClient } from "../../client/http/jira.http-client.impl";
 import {
   AddIssueCommentUseCaseImpl,
   AddWorklogUseCaseImpl,
+  ChangeIssueTypeUseCaseImpl,
   CreateIssueUseCaseImpl,
   DeleteWorklogUseCaseImpl,
+  EpicRelationResolver,
   GetAssignedIssuesUseCaseImpl,
+  GetEpicInfoUseCaseImpl,
   GetIssueCommentsUseCaseImpl,
   GetIssueCustomFieldMetadataUseCaseImpl,
   GetIssueLinkTypesUseCaseImpl,
@@ -30,9 +33,12 @@ import {
   IssueSearchRepositoryImpl,
   IssueTransitionRepositoryImpl,
   LinkIssuesUseCaseImpl,
+  RemoveIssueEpicUseCaseImpl,
   ResolveCustomFieldsUseCaseImpl,
   SearchIssuesUseCaseImpl,
+  SetIssueEpicUseCaseImpl,
   TransitionIssueUseCaseImpl,
+  UnlinkIssueUseCaseImpl,
   UpdateIssueUseCaseImpl,
   UpdateWorklogUseCaseImpl,
   WorklogRepositoryImpl,
@@ -69,6 +75,13 @@ import {
   UserProfileValidatorImpl,
 } from "../../users";
 
+import {
+  AttachmentValidatorImpl,
+  DownloadAttachmentUseCaseImpl,
+  GetIssueAttachmentsUseCaseImpl,
+} from "../../attachments";
+import { AttachmentRepositoryImpl } from "../../attachments/repositories";
+
 /**
  * Dependencies interface
  *
@@ -76,6 +89,11 @@ import {
  */
 export interface JiraDependencies {
   // Use cases
+  getEpicInfoUseCase: GetEpicInfoUseCaseImpl;
+  setIssueEpicUseCase: SetIssueEpicUseCaseImpl;
+  removeIssueEpicUseCase: RemoveIssueEpicUseCaseImpl;
+  changeIssueTypeUseCase: ChangeIssueTypeUseCaseImpl;
+  unlinkIssueUseCase: UnlinkIssueUseCaseImpl;
   createIssueUseCase: CreateIssueUseCaseImpl;
   updateIssueUseCase: UpdateIssueUseCaseImpl;
   searchIssuesUseCase: SearchIssuesUseCaseImpl;
@@ -101,6 +119,8 @@ export interface JiraDependencies {
   searchUsersUseCase: SearchUsersUseCaseImpl;
   getAssignableUsersUseCase: GetAssignableUsersUseCaseImpl;
   assignIssueUseCase: AssignIssueUseCaseImpl;
+  getIssueAttachmentsUseCase: GetIssueAttachmentsUseCaseImpl;
+  downloadAttachmentUseCase: DownloadAttachmentUseCaseImpl;
 
   // Validators
   issueParamsValidator: IssueParamsValidatorImpl;
@@ -111,6 +131,7 @@ export interface JiraDependencies {
   boardValidator: BoardValidatorImpl;
   sprintValidator: SprintValidatorImpl;
   userProfileValidator: UserProfileValidatorImpl;
+  attachmentValidator: AttachmentValidatorImpl;
 }
 
 /**
@@ -157,6 +178,7 @@ function createRepositories(httpClient: JiraHttpClient) {
     boardRepository: new BoardRepositoryImpl(httpClient),
     sprintRepository: new SprintRepositoryImpl(httpClient),
     userProfileRepository: new UserProfileRepositoryImpl(httpClient),
+    attachmentRepository: new AttachmentRepositoryImpl(httpClient),
   };
 }
 
@@ -174,6 +196,7 @@ function createValidators(httpClient: JiraHttpClient) {
     boardValidator: new BoardValidatorImpl(),
     sprintValidator: new SprintValidatorImpl(),
     userProfileValidator: new UserProfileValidatorImpl(),
+    attachmentValidator: new AttachmentValidatorImpl(),
   };
 }
 
@@ -184,6 +207,25 @@ function createUseCases(
   repositories: ReturnType<typeof createRepositories>,
   validators: ReturnType<typeof createValidators>,
 ) {
+  const epicRelationResolver = new EpicRelationResolver(
+    repositories.issueCustomFieldRepository,
+  );
+
+  const updateIssueUseCase = new UpdateIssueUseCaseImpl(
+    repositories.issueRepository,
+    repositories.issueTransitionRepository,
+    repositories.worklogRepository,
+    repositories.projectPermissionRepository,
+  );
+
+  const searchIssuesUseCase = new SearchIssuesUseCaseImpl(
+    repositories.issueSearchRepository,
+  );
+
+  const resolveCustomFieldsUseCase = new ResolveCustomFieldsUseCaseImpl(
+    repositories.issueCustomFieldRepository,
+  );
+
   return {
     // Issue use cases
     createIssueUseCase: new CreateIssueUseCaseImpl(
@@ -191,14 +233,30 @@ function createUseCases(
       validators.projectValidator,
       repositories.projectPermissionRepository,
     ),
-    updateIssueUseCase: new UpdateIssueUseCaseImpl(
+    updateIssueUseCase,
+    searchIssuesUseCase,
+    getEpicInfoUseCase: new GetEpicInfoUseCaseImpl(
       repositories.issueRepository,
-      repositories.issueTransitionRepository,
-      repositories.worklogRepository,
-      repositories.projectPermissionRepository,
+      searchIssuesUseCase,
+      epicRelationResolver,
     ),
-    searchIssuesUseCase: new SearchIssuesUseCaseImpl(
-      repositories.issueSearchRepository,
+    setIssueEpicUseCase: new SetIssueEpicUseCaseImpl(
+      updateIssueUseCase,
+      repositories.issueRepository,
+      epicRelationResolver,
+    ),
+    removeIssueEpicUseCase: new RemoveIssueEpicUseCaseImpl(
+      updateIssueUseCase,
+      repositories.issueRepository,
+      epicRelationResolver,
+    ),
+    changeIssueTypeUseCase: new ChangeIssueTypeUseCaseImpl(
+      updateIssueUseCase,
+      repositories.issueCustomFieldRepository,
+      resolveCustomFieldsUseCase,
+    ),
+    unlinkIssueUseCase: new UnlinkIssueUseCaseImpl(
+      repositories.issueLinkRepository,
     ),
     getIssueUseCase: new GetIssueUseCaseImpl(repositories.issueRepository),
     getAssignedIssuesUseCase: new GetAssignedIssuesUseCaseImpl(
@@ -206,6 +264,7 @@ function createUseCases(
     ),
     getIssueCommentsUseCase: new GetIssueCommentsUseCaseImpl(
       repositories.issueCommentRepository,
+      repositories.issueRepository,
       validators.issueCommentValidator,
     ),
     getIssueCustomFieldMetadataUseCase:
@@ -224,9 +283,7 @@ function createUseCases(
     linkIssuesUseCase: new LinkIssuesUseCaseImpl(
       repositories.issueLinkRepository,
     ),
-    resolveCustomFieldsUseCase: new ResolveCustomFieldsUseCaseImpl(
-      repositories.issueCustomFieldRepository,
-    ),
+    resolveCustomFieldsUseCase,
 
     // Worklog use cases
     addWorklogUseCase: new AddWorklogUseCaseImpl(
@@ -275,6 +332,12 @@ function createUseCases(
     assignIssueUseCase: new AssignIssueUseCaseImpl(
       repositories.userProfileRepository,
       repositories.issueRepository,
+    ),
+    getIssueAttachmentsUseCase: new GetIssueAttachmentsUseCaseImpl(
+      repositories.issueRepository,
+    ),
+    downloadAttachmentUseCase: new DownloadAttachmentUseCaseImpl(
+      repositories.attachmentRepository,
     ),
   };
 }

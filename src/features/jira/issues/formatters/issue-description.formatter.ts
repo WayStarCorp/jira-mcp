@@ -4,7 +4,9 @@
  * Handles formatting of issue descriptions with ADF parsing
  * Extracted from IssueFormatter to reduce complexity
  */
-import { parseADF } from "@features/jira/shared/parsers/adf.parser";
+import { formatInlineMediaBlock } from "@features/jira/attachments/formatters/inline-media.formatter";
+import { mapIssueAttachments } from "@features/jira/attachments/models";
+import { parseADFWithMedia } from "@features/jira/shared/parsers/adf.parser";
 import type { Issue } from "../models/issue.models";
 
 /**
@@ -28,7 +30,15 @@ export class IssueDescriptionFormatter {
 
     // Handle ADF document or string description
     if (typeof issue.fields.description === "object") {
-      descriptionContent = parseADF(issue.fields.description);
+      const { markdown, media } = parseADFWithMedia(issue.fields.description);
+      descriptionContent = markdown;
+      const inlineBlock = formatInlineMediaBlock(
+        media,
+        mapIssueAttachments(issue.fields?.attachment),
+      );
+      if (inlineBlock) {
+        descriptionContent += `\n\n${inlineBlock}`;
+      }
     } else {
       descriptionContent = issue.fields.description;
     }

@@ -39,3 +39,13 @@ export const linkIssuesParamsSchema = linkIssuesFieldsSchema.superRefine(
 );
 
 export type LinkIssuesParams = z.infer<typeof linkIssuesParamsSchema>;
+
+/**
+ * Params for `jira_unlink_issue` — deletes a generic link by REST `issueLink/{id}`.
+ * Jira link id length varies by instance / link type — keep a generous cap only.
+ */
+export const unlinkIssueParamsSchema = z.object({
+  linkId: z.string().min(1).max(256),
+});
+
+export type UnlinkIssueParams = z.infer<typeof unlinkIssueParamsSchema>;

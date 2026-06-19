@@ -29,3 +29,14 @@ export class IssueTransitionValidationError extends ValidationError {
     this.name = "IssueTransitionValidationError";
   }
 }
+
+/**
+ * Error thrown when change-issue-type parameters are inconsistent
+ * (e.g. the same REST field key appears in both requiredFields and customFields).
+ */
+export class ChangeIssueTypeParamsValidationError extends ValidationError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, context);
+    this.name = "ChangeIssueTypeParamsValidationError";
+  }
+}

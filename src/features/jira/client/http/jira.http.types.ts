@@ -63,6 +63,15 @@ export interface HttpClient {
   sendRequest<T>(options: HttpRequestOptions): Promise<T>;
 
   /**
+   * Download binary content from an absolute Jira attachment URL.
+   * URL must pass SSRF validation (HTTPS, JIRA_HOST origin only).
+   *
+   * @param url - Absolute content URL from attachment metadata
+   * @param maxBytes - Maximum response size in bytes
+   */
+  downloadBinary(url: string, maxBytes: number): Promise<ArrayBuffer>;
+
+  /**
    * Check if the client is configured properly
    * @returns true if the client is configured
    */

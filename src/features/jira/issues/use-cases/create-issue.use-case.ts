@@ -67,8 +67,12 @@ export const createIssueParamsSchema = z.object({
     .max(3, "Maximum 3 fix versions allowed")
     .optional(),
 
-  // Parent issue for subtasks
-  parentIssueKey: issueKeySchema.optional(),
+  // REST fields.parent — valid for sub-tasks and some hierarchy; not Classic "Epic Link"
+  parentIssueKey: issueKeySchema
+    .optional()
+    .describe(
+      "Sets Jira REST fields.parent (parent issue key). Use for sub-tasks or where your project/API accepts a parent. On company-managed Jira, linking a Story/Task/Bug to an epic usually requires the Epic Link custom field via customFields, not this parameter — parentIssueKey may return 400 Bad Request.",
+    ),
 
   // Time tracking
   timeEstimate: z
@@ -94,7 +98,12 @@ export const createIssueParamsSchema = z.object({
     .optional(),
 
   // Custom fields (flexible object)
-  customFields: z.record(z.string(), z.unknown()).optional(),
+  customFields: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .describe(
+      'Custom field values by id (customfield_*). For Classic epic association, set Epic Link: {"customfield_XXXXX":"EPIC-KEY"} — resolve XXXXX with jira_get_issue_custom_field_metadata on any issue in the project.',
+    ),
 });
 
 /**

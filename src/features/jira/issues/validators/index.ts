@@ -5,6 +5,7 @@
 // Export all validators, types, and schemas
 export * from "./issue-comment.validator";
 export * from "./custom-field.validator";
+export * from "./epic.validator";
 export * from "./issue-field.validator";
 export * from "./issue-params.validator";
 export * from "./issue-link.validator";

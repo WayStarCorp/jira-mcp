@@ -59,7 +59,9 @@ export class GetSprintsHandler extends BaseToolHandler<
 
       // Step 2: Get sprints using use case
       this.logger.debug("Retrieving sprints with params:", {
-        ...(validatedParams.boardId ? { boardId: validatedParams.boardId } : {}),
+        ...(validatedParams.boardId
+          ? { boardId: validatedParams.boardId }
+          : {}),
         hasState: !!validatedParams.state,
         maxResults: validatedParams.maxResults,
       });
@@ -85,10 +87,7 @@ export class GetSprintsHandler extends BaseToolHandler<
   /**
    * Enhance error messages for better user guidance
    */
-  private enhanceError(
-    error: unknown,
-    params?: GetSprintsParamsInput,
-  ): Error {
+  private enhanceError(error: unknown, params?: GetSprintsParamsInput): Error {
     const boardContext = params?.boardId ? ` for board ${params.boardId}` : "";
 
     if (error instanceof JiraNotFoundError) {

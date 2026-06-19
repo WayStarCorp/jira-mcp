@@ -4,6 +4,7 @@
  */
 
 import { beforeEach, describe, expect, test } from "bun:test";
+import type { AttachmentMetadata } from "@features/jira/attachments/models";
 import {
   type CommentsContext,
   CommentsFormatter,
@@ -381,6 +382,163 @@ describe("CommentsFormatter", () => {
       const result = formatter.format({ comments, context });
 
       expect(result).toContain("**Latest:** Jan 16, 2024, 02:45 PM");
+    });
+
+    test("should append inline media block when ADF has media and id matches attachment", () => {
+      const mediaId = "10042";
+      const adfBody: ADFDocument = {
+        type: "doc",
+        version: 1,
+        content: [
+          {
+            type: "mediaSingle",
+            content: [
+              {
+                type: "media",
+                attrs: { id: mediaId, type: "file", alt: "screenshot.png" },
+              },
+            ],
+          },
+        ],
+      };
+
+      const comment: Comment = {
+        id: "comment-99",
+        self: "https://test.atlassian.net/rest/api/3/issue/123/comment/99",
+        author: { displayName: "John Doe", accountId: "user-123" },
+        body: adfBody,
+        created: "2024-01-15T10:30:00.000Z",
+        updated: "2024-01-15T10:30:00.000Z",
+      };
+
+      const attachments: AttachmentMetadata[] = [
+        {
+          id: mediaId,
+          filename: "screenshot.png",
+          mimeType: "image/png",
+          size: 1024,
+          created: "2024-01-15T10:00:00.000Z",
+          author: "John Doe",
+          contentUrl:
+            "https://example.atlassian.net/secure/attachment/10042/file.png",
+          isImage: true,
+        },
+      ];
+
+      const context: CommentsContext = {
+        issueKey: "TEST-123",
+        totalComments: 1,
+      };
+
+      const result = formatter.format({
+        comments: [comment],
+        context,
+        attachments,
+      });
+
+      expect(result).toContain("[media: 10042]");
+      expect(result).toContain("Inline media:");
+      expect(result).toContain(
+        "  📷 attachment id: 10042 → screenshot.png (image/png)",
+      );
+      expect(result).not.toContain("comment-99");
+    });
+
+    test("should show unresolved inline media when media id does not match attachments", () => {
+      const adfBody: ADFDocument = {
+        type: "doc",
+        version: 1,
+        content: [
+          {
+            type: "mediaSingle",
+            content: [
+              {
+                type: "media",
+                attrs: {
+                  id: "aad76a6d-uuid",
+                  type: "file",
+                  alt: "shot.png",
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      const comment: Comment = {
+        id: "10001",
+        self: "https://test.atlassian.net/rest/api/3/issue/123/comment/1",
+        author: { displayName: "John Doe", accountId: "user-123" },
+        body: adfBody,
+        created: "2024-01-15T10:30:00.000Z",
+        updated: "2024-01-15T10:30:00.000Z",
+      };
+
+      const attachments: AttachmentMetadata[] = [
+        {
+          id: "15894",
+          filename: "shot.png",
+          mimeType: "image/png",
+          size: 1024,
+          created: "2024-01-15T10:00:00.000Z",
+          author: "John Doe",
+          contentUrl:
+            "https://example.atlassian.net/secure/attachment/15894/file.png",
+          isImage: true,
+        },
+      ];
+
+      const context: CommentsContext = {
+        issueKey: "TEST-123",
+        totalComments: 1,
+      };
+
+      const result = formatter.format({
+        comments: [comment],
+        context,
+        attachments,
+      });
+
+      expect(result).toContain(
+        "  📷 media id: aad76a6d-uuid → [unresolved: no matching attachment found]",
+      );
+    });
+
+    test("should not add inline media block for plain text comment body", () => {
+      const comment: Comment = {
+        id: "1",
+        self: "https://test.atlassian.net/rest/api/3/issue/123/comment/1",
+        author: { displayName: "John Doe", accountId: "user-123" },
+        body: "Plain text only",
+        created: "2024-01-15T10:30:00.000Z",
+        updated: "2024-01-15T10:30:00.000Z",
+      };
+
+      const context: CommentsContext = {
+        issueKey: "TEST-123",
+        totalComments: 1,
+      };
+
+      const result = formatter.format({
+        comments: [comment],
+        context,
+        attachments: [
+          {
+            id: "10042",
+            filename: "screenshot.png",
+            mimeType: "image/png",
+            size: 1024,
+            created: "2024-01-15T10:00:00.000Z",
+            author: "John Doe",
+            contentUrl:
+              "https://example.atlassian.net/secure/attachment/10042/file.png",
+            isImage: true,
+          },
+        ],
+      });
+
+      expect(result).not.toContain("Inline media:");
+      expect(result).toContain("Plain text only");
     });
 
     test("should use singular form for single comment in navigation", () => {

@@ -21,3 +21,6 @@ export { createWorklogToolsConfig } from "./worklog-tools.config";
 
 // User tools configuration
 export { createUserToolsConfig } from "./user-tools.config";
+
+// Attachment tools configuration
+export { createAttachmentToolsConfig } from "./attachment-tools.config";

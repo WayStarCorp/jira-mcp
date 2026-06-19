@@ -121,7 +121,9 @@ export class SprintValidatorImpl implements SprintValidator {
    * @returns Validated parameters
    * @throws SprintParamsValidationError - If validation fails
    */
-  public validateGetSprintsParams(params: GetSprintsParamsInput): GetSprintsParams {
+  public validateGetSprintsParams(
+    params: GetSprintsParamsInput,
+  ): GetSprintsParams {
     const result = getSprintsParamsSchema.safeParse(params);
 
     if (!result.success) {

@@ -9,6 +9,7 @@ import type { IssueLinkType, LinkIssuesRequest } from "../models";
 export interface IssueLinkRepository {
   getIssueLinkTypes(): Promise<IssueLinkType[]>;
   linkIssues(request: LinkIssuesRequest): Promise<void>;
+  deleteIssueLink(linkId: string): Promise<void>;
 }
 
 /**
@@ -56,6 +57,17 @@ export class IssueLinkRepositoryImpl implements IssueLinkRepository {
       endpoint: "issueLink",
       method: "POST",
       body,
+    });
+  }
+
+  async deleteIssueLink(linkId: string): Promise<void> {
+    this.logger.debug(`Deleting issue link: ${linkId}`, {
+      prefix: "JIRA:IssueLinkRepository",
+    });
+
+    await this.httpClient.sendRequest<void>({
+      endpoint: `issueLink/${encodeURIComponent(linkId)}`,
+      method: "DELETE",
     });
   }
 }

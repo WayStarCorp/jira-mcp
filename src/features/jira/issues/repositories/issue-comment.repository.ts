@@ -1,7 +1,7 @@
 import { logger } from "@core/logging";
 import type { HttpClient } from "@features/jira/client/http/jira.http.types";
 import { ensureADFFormat } from "@features/jira/shared/parsers/adf.parser";
-import type { Comment, GetCommentsOptions } from "../models";
+import type { Comment, GetCommentsOptions, IssueCommentsPage } from "../models";
 
 /**
  * Comments API response interface
@@ -21,7 +21,7 @@ export interface IssueCommentRepository {
   getIssueComments(
     issueKey: string,
     options?: GetCommentsOptions,
-  ): Promise<Comment[]>;
+  ): Promise<IssueCommentsPage>;
   addIssueComment(issueKey: string, comment: string): Promise<Comment>;
 }
 
@@ -40,7 +40,7 @@ export class IssueCommentRepositoryImpl implements IssueCommentRepository {
   async getIssueComments(
     issueKey: string,
     options?: GetCommentsOptions,
-  ): Promise<Comment[]> {
+  ): Promise<IssueCommentsPage> {
     this.logger.debug(`Getting comments for issue: ${issueKey}`, {
       prefix: "JIRA:IssueCommentRepository",
     });
@@ -69,7 +69,10 @@ export class IssueCommentRepositoryImpl implements IssueCommentRepository {
       queryParams,
     });
 
-    return response.comments;
+    return {
+      comments: response.comments ?? [],
+      total: response.total ?? response.comments?.length ?? 0,
+    };
   }
 
   /**

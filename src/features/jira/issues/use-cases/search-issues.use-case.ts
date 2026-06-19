@@ -10,6 +10,7 @@ import { JiraApiError } from "@features/jira/client/errors";
 import { z } from "zod";
 import type { Issue, SearchIssuesOptions } from "../models";
 import type { IssueSearchRepository } from "../repositories";
+import { escapeJqlQuotedLiteral } from "../utils/jql-escape";
 
 /**
  * Base schema for search parameters (without refinement)
@@ -72,11 +73,12 @@ export function buildJQLFromHelpers(params: SearchJiraIssuesParams): string {
     const statuses = Array.isArray(params.status)
       ? params.status
       : [params.status];
-    conditions.push(`status IN (${statuses.map((s) => `"${s}"`).join(", ")})`);
+    const quotedStatuses = statuses.map((s) => `"${s}"`).join(", ");
+    conditions.push(`status IN (${quotedStatuses})`);
   }
 
   if (params.text) {
-    const escapedText = params.text.replace(/"/g, '\\"');
+    const escapedText = escapeJqlQuotedLiteral(params.text);
     conditions.push(
       `(summary ~ "${escapedText}" OR description ~ "${escapedText}")`,
     );
@@ -143,6 +145,7 @@ export class SearchIssuesUseCaseImpl implements SearchIssuesUseCase {
         jql: jqlQuery,
         fields: request.fields || [
           "summary",
+          "issuetype",
           "status",
           "priority",
           "assignee",

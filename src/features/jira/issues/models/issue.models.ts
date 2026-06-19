@@ -11,6 +11,29 @@ import type {
 import type { User } from "@features/jira/users/models";
 
 /**
+ * Parent issue reference (hierarchy / sub-tasks)
+ */
+export interface IssueParentRef {
+  id?: string;
+  key?: string;
+}
+
+/**
+ * Generic issue link item from Jira `fields.issuelinks`
+ */
+export interface IssueLinkItem {
+  id: string;
+  type?: {
+    name?: string | null;
+    id?: string;
+    inward?: string | null;
+    outward?: string | null;
+  } | null;
+  inwardIssue?: { key?: string; id?: string } | null;
+  outwardIssue?: { key?: string; id?: string } | null;
+}
+
+/**
  * Basic JIRA issue representation
  */
 export interface Issue {
@@ -28,8 +51,11 @@ export interface IssueFields {
   description?: ADFDocument | ADFNode | string | null;
   issuetype?: {
     name: string | null;
+    id?: string;
     iconUrl?: string | null;
   } | null;
+  parent?: IssueParentRef | null;
+  issuelinks?: IssueLinkItem[] | null;
   status?: {
     name: string | null;
     statusCategory?: {
