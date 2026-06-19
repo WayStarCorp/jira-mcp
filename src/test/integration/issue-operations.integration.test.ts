@@ -17,6 +17,7 @@ import {
   getJiraCredentialsSkipReason,
   hasJiraCredentials,
 } from "../utils/jira-credentials";
+import { getJiraTestProjectKey } from "../utils/jira-integration-config";
 
 describe("Issue Operations Integration Tests", () => {
   let httpClient: JiraHttpClient;
@@ -81,7 +82,9 @@ describe("Issue Operations Integration Tests", () => {
 
       try {
         const hasPermission =
-          await permissionRepository.hasCreateIssuePermission("SEC");
+          await permissionRepository.hasCreateIssuePermission(
+            getJiraTestProjectKey(),
+          );
         console.log(
           `CREATE_ISSUES permission: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
         );
@@ -113,7 +116,9 @@ describe("Issue Operations Integration Tests", () => {
 
       try {
         const hasPermission =
-          await permissionRepository.hasEditIssuePermission("SEC");
+          await permissionRepository.hasEditIssuePermission(
+            getJiraTestProjectKey(),
+          );
         console.log(
           `EDIT_ISSUES permission: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
         );
@@ -137,7 +142,7 @@ describe("Issue Operations Integration Tests", () => {
   });
 
   describe("Issue Creation Flow", () => {
-    test("should create issue in SEC project without permission errors", async () => {
+    test("should create issue in test project without permission errors", async () => {
       if (!hasJiraCredentials()) {
         console.log("⚠️ Skipping test - no JIRA credentials provided");
         return;
@@ -147,18 +152,19 @@ describe("Issue Operations Integration Tests", () => {
   });
 
   async function testIssueCreation(): Promise<void> {
-    console.log("🔍 Testing issue creation in SEC project...");
+    const projectKey = getJiraTestProjectKey();
+    console.log(`🔍 Testing issue creation in ${projectKey} project...`);
 
     try {
       const createRequest = {
-        projectKey: "SEC",
+        projectKey,
         summary: `Integration Test Issue - ${new Date().toISOString()}`,
         description: "This is a test issue created by integration tests",
         issueType: "Task",
       };
 
       const createdIssue = await createIssueUseCase.execute(createRequest);
-      validateCreatedIssue(createdIssue);
+      validateCreatedIssue(createdIssue, projectKey);
       logCreationSuccess(createdIssue);
     } catch (error) {
       handleCreationError(error);
@@ -166,11 +172,13 @@ describe("Issue Operations Integration Tests", () => {
     }
   }
 
-  function validateCreatedIssue(createdIssue: Issue): void {
+  function validateCreatedIssue(createdIssue: Issue, projectKey: string): void {
     expect(createdIssue).toBeDefined();
     expect(createdIssue.key).toBeDefined();
-    expect(createdIssue.key).toMatch(/^SEC-\d+$/);
-    expect(createdIssue.fields?.project?.key).toBe("SEC");
+    expect(createdIssue.key).toMatch(
+      new RegExp(`^${projectKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-\\d+$`),
+    );
+    expect(createdIssue.fields?.project?.key).toBe(projectKey);
     expect(createdIssue.fields?.summary).toContain("Integration Test Issue");
 
     // Store for cleanup
@@ -196,7 +204,9 @@ describe("Issue Operations Integration Tests", () => {
           "🚨 PERMISSION ERROR: This suggests the fix didn't work!",
         );
       } else if (error.message.includes("404")) {
-        console.error("🚨 PROJECT NOT FOUND: SEC project may not exist");
+        console.error(
+          `🚨 PROJECT NOT FOUND: ${getJiraTestProjectKey()} project may not exist`,
+        );
       }
     }
   }

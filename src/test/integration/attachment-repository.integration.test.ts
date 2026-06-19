@@ -1,5 +1,6 @@
 /**
- * Integration tests for AttachmentRepository (metadata + binary download)
+ * Integration tests for AttachmentRepository (metadata + binary download).
+ * Uses attachment id 15894 on SUPP-79 when credentials are set (see attachments spike).
  */
 import { beforeAll, describe, expect, test } from "bun:test";
 import { HARD_MAX_BYTES } from "@features/jira/client/http/attachment-url.validator";

@@ -138,6 +138,26 @@ describe("JiraHttpClient.downloadBinary", () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
+  it("follows redirect to Jira Cloud Media Services host", async () => {
+    const payload = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    const mediaUrl =
+      "https://api.media.atlassian.com/file/aad76a6d-d7ee-4db2-af06-dad8645d037b/binary?dl=true";
+
+    mockFetch.mockResolvedValueOnce(createRedirectResponse(mediaUrl, 303));
+    mockFetch.mockResolvedValueOnce(
+      createBinaryResponse(payload, { contentLength: String(payload.byteLength) }),
+    );
+
+    const result = await client.downloadBinary(ALLOWED_CONTENT_URL, 1024);
+
+    expect(result.byteLength).toBe(4);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenLastCalledWith(
+      mediaUrl,
+      expect.objectContaining({ redirect: "manual" }),
+    );
+  });
+
   it("throws AttachmentTooLargeError when streaming body exceeds maxBytes without Content-Length", async () => {
     const largeChunk = new Uint8Array(20);
     mockFetch.mockResolvedValue({

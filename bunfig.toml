@@ -5,6 +5,8 @@ registry = "https://registry.npmjs.org"
 cache = true
 
 [test]
+# Load .env before tests (integration tests use JIRA_* from repo root)
+preload = ["./src/test/preload.ts"]
 # Test configuration aligned with TypeScript
 bail = false # Don't stop on first failure by default
 coverage = false # Default coverage setting

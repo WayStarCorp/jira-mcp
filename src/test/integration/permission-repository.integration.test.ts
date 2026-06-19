@@ -11,6 +11,7 @@ import {
   getJiraCredentialsSkipReason,
   hasJiraCredentials,
 } from "../utils/jira-credentials";
+import { getJiraTestProjectKey } from "../utils/jira-integration-config";
 
 describe("ProjectPermissionRepository Integration Tests", () => {
   let permissionRepository: ProjectPermissionRepositoryImpl;
@@ -52,7 +53,9 @@ describe("ProjectPermissionRepository Integration Tests", () => {
     async function testMypermissionsEndpoint() {
       try {
         const permissions =
-          await permissionRepository.getProjectPermissions("SEC");
+          await permissionRepository.getProjectPermissions(
+            getJiraTestProjectKey(),
+          );
         validatePermissionsResponse(permissions);
         logPermissionsSuccess(permissions);
       } catch (error) {
@@ -108,7 +111,7 @@ describe("ProjectPermissionRepository Integration Tests", () => {
       throw error;
     }
 
-    test("should check CREATE_ISSUES permission for SEC project", async () => {
+    test("should check CREATE_ISSUES permission for test project", async () => {
       if (!hasJiraCredentials()) {
         console.log("⚠️ Skipping test - no JIRA credentials provided");
         return;
@@ -116,10 +119,12 @@ describe("ProjectPermissionRepository Integration Tests", () => {
 
       try {
         const hasPermission =
-          await permissionRepository.hasCreateIssuePermission("SEC");
+          await permissionRepository.hasCreateIssuePermission(
+            getJiraTestProjectKey(),
+          );
 
         console.log(
-          `🔍 CREATE_ISSUES permission for SEC: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
+          `🔍 CREATE_ISSUES permission for ${getJiraTestProjectKey()}: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
         );
 
         // This should return true based on the user's report
@@ -136,7 +141,7 @@ describe("ProjectPermissionRepository Integration Tests", () => {
       }
     });
 
-    test("should check EDIT_ISSUES permission for SEC project", async () => {
+    test("should check EDIT_ISSUES permission for test project", async () => {
       if (!hasJiraCredentials()) {
         console.log("⚠️ Skipping test - no JIRA credentials provided");
         return;
@@ -144,10 +149,12 @@ describe("ProjectPermissionRepository Integration Tests", () => {
 
       try {
         const hasPermission =
-          await permissionRepository.hasEditIssuePermission("SEC");
+          await permissionRepository.hasEditIssuePermission(
+            getJiraTestProjectKey(),
+          );
 
         console.log(
-          `🔍 EDIT_ISSUES permission for SEC: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
+          `🔍 EDIT_ISSUES permission for ${getJiraTestProjectKey()}: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
         );
 
         // This should return true based on the user's report
@@ -180,7 +187,7 @@ describe("ProjectPermissionRepository Integration Tests", () => {
           endpoint: "mypermissions",
           method: "GET",
           queryParams: {
-            projectKey: "SEC",
+            projectKey: getJiraTestProjectKey(),
             permissions: "CREATE_ISSUES,EDIT_ISSUES,DELETE_ISSUES",
           },
         });
@@ -200,7 +207,7 @@ describe("ProjectPermissionRepository Integration Tests", () => {
           endpoint: "user/permission/search",
           method: "GET",
           queryParams: {
-            projectKey: "SEC",
+            projectKey: getJiraTestProjectKey(),
             permissions: "CREATE_ISSUES,EDIT_ISSUES,DELETE_ISSUES",
           },
         });

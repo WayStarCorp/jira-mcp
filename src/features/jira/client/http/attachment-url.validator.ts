@@ -9,8 +9,14 @@ export const HARD_MAX_BYTES = 50 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
 
 /**
+ * Jira Cloud Media Services — typical redirect target for `/attachment/content/{id}`.
+ * Instance-agnostic Atlassian host (not tied to a site key or project).
+ */
+const JIRA_CLOUD_MEDIA_DOWNLOAD_HOSTS = new Set(["api.media.atlassian.com"]);
+
+/**
  * Validates attachment content URLs against SSRF rules:
- * HTTPS only, host must match JIRA_HOST origin, no private/link-local targets.
+ * HTTPS only, host must match JIRA_HOST or known Jira Cloud media CDN, no private/link-local targets.
  */
 export class AttachmentUrlValidator {
   private readonly allowedHost: string;
@@ -44,7 +50,10 @@ export class AttachmentUrlValidator {
     const host = parsed.hostname.toLowerCase();
     assertNotPrivateOrLinkLocal(host);
 
-    if (host !== this.allowedHost) {
+    if (
+      host !== this.allowedHost &&
+      !JIRA_CLOUD_MEDIA_DOWNLOAD_HOSTS.has(host)
+    ) {
       throw new JiraApiError(
         "Attachment URL host is not allowed",
         JiraErrorCode.API_ERROR,
