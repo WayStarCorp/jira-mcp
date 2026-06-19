@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { AttachmentMetadata } from "@features/jira/attachments/models";
 import { InlineMediaFormatter } from "@features/jira/attachments/formatters/inline-media.formatter";
+import type { AttachmentMetadata } from "@features/jira/attachments/models";
 import type { ParsedMedia } from "@features/jira/shared/parsers/adf.parser";
 
 const spikeAttachment: AttachmentMetadata = {
@@ -59,10 +59,7 @@ describe("InlineMediaFormatter", () => {
 
   test("formats multiple media with mixed resolution", () => {
     const output = formatter.format({
-      media: [
-        { mediaId: "15894" },
-        { mediaId: "unknown-uuid" },
-      ],
+      media: [{ mediaId: "15894" }, { mediaId: "unknown-uuid" }],
       attachments: [spikeAttachment],
     });
 
@@ -73,5 +70,4 @@ describe("InlineMediaFormatter", () => {
       "  📷 media id: unknown-uuid → [unresolved: no matching attachment found]",
     );
   });
-
 });

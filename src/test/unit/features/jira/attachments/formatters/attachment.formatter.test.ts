@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { AttachmentMetadata } from "@features/jira/attachments/models";
 import { AttachmentFormatter } from "@features/jira/attachments/formatters/attachment.formatter";
+import type { AttachmentMetadata } from "@features/jira/attachments/models";
 
 const spikeAttachment: AttachmentMetadata = {
   id: "15894",
@@ -20,7 +20,8 @@ const pdfAttachment: AttachmentMetadata = {
   size: 1_258_291,
   created: "2026-05-20T10:00:00.000Z",
   author: "user@example.com",
-  contentUrl: "https://example.atlassian.net/secure/attachment/10043/report.pdf",
+  contentUrl:
+    "https://example.atlassian.net/secure/attachment/10043/report.pdf",
   isImage: false,
 };
 

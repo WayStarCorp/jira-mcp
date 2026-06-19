@@ -1,10 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import type { McpResponse } from "@core/responses/mcp-response.types";
-import {
-  JiraApiError,
-  JiraNotFoundError,
-  JiraPermissionError,
-} from "@features/jira/client/errors";
 import { GetIssueAttachmentsHandler } from "@features/jira/attachments/handlers/get-issue-attachments.handler";
 import type { GetIssueAttachmentsUseCase } from "@features/jira/attachments/use-cases/get-issue-attachments.use-case";
 import type {
@@ -12,6 +7,11 @@ import type {
   DownloadAttachmentParams,
   GetIssueAttachmentsParams,
 } from "@features/jira/attachments/validators/attachment.validator";
+import {
+  JiraApiError,
+  JiraNotFoundError,
+  JiraPermissionError,
+} from "@features/jira/client/errors";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();
@@ -71,7 +71,8 @@ describe("GetIssueAttachmentsHandler", () => {
             size: 250_880,
             created: "2026-05-20T10:00:00.000Z",
             author: "user@example.com",
-            contentUrl: "https://example.atlassian.net/secure/attachment/10042/file.png",
+            contentUrl:
+              "https://example.atlassian.net/secure/attachment/10042/file.png",
             isImage: true,
           },
         ],

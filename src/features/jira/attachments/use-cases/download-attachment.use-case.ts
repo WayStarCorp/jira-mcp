@@ -19,10 +19,14 @@ export interface DownloadAttachmentResult {
 }
 
 export interface DownloadAttachmentUseCase {
-  execute(request: DownloadAttachmentRequest): Promise<DownloadAttachmentResult>;
+  execute(
+    request: DownloadAttachmentRequest,
+  ): Promise<DownloadAttachmentResult>;
 }
 
-export class DownloadAttachmentUseCaseImpl implements DownloadAttachmentUseCase {
+export class DownloadAttachmentUseCaseImpl
+  implements DownloadAttachmentUseCase
+{
   constructor(private readonly attachmentRepository: AttachmentRepository) {}
 
   public async execute(

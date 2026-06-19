@@ -1,7 +1,7 @@
 import type { Issue } from "../models/issue.models";
 import type { IssueCustomFieldRepository } from "../repositories/issue-custom-field.repository";
-import { ChangeIssueTypeParamsValidationError } from "../validators/errors";
 import type { ChangeIssueTypeParams } from "../validators/epic.validator";
+import { ChangeIssueTypeParamsValidationError } from "../validators/errors";
 import type { ResolveCustomFieldsUseCase } from "./custom-field-metadata.use-case";
 import type { UpdateIssueUseCase } from "./update-issue.use-case";
 
@@ -60,7 +60,10 @@ export class ChangeIssueTypeUseCaseImpl implements ChangeIssueTypeUseCase {
       });
     }
 
-    if (params.requiredFields && Object.keys(params.requiredFields).length > 0) {
+    if (
+      params.requiredFields &&
+      Object.keys(params.requiredFields).length > 0
+    ) {
       const overlappingKeys = Object.keys(resolvedCustom).filter((key) =>
         Object.prototype.hasOwnProperty.call(params.requiredFields, key),
       );

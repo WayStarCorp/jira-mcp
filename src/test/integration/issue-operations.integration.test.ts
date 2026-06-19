@@ -115,10 +115,9 @@ describe("Issue Operations Integration Tests", () => {
       console.log("🔍 Testing EDIT_ISSUES permission validation...");
 
       try {
-        const hasPermission =
-          await permissionRepository.hasEditIssuePermission(
-            getJiraTestProjectKey(),
-          );
+        const hasPermission = await permissionRepository.hasEditIssuePermission(
+          getJiraTestProjectKey(),
+        );
         console.log(
           `EDIT_ISSUES permission: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,
         );

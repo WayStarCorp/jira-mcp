@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { IssueRepository } from "@features/jira/issues/repositories/issue.repository";
+import type { EpicRelationResolver } from "@features/jira/issues/use-cases/epic-relation-resolver";
 import {
   EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID,
   GetEpicInfoUseCaseImpl,
 } from "@features/jira/issues/use-cases/get-epic-info.use-case";
-import type { EpicRelationResolver } from "@features/jira/issues/use-cases/epic-relation-resolver";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();

@@ -35,7 +35,10 @@ export class SetIssueEpicUseCaseImpl implements SetIssueEpicUseCase {
       epicFieldId: params.epicFieldId,
     });
 
-    const fields = this.epicResolvedToUpdateFields(resolved, params.epicIssueKey);
+    const fields = this.epicResolvedToUpdateFields(
+      resolved,
+      params.epicIssueKey,
+    );
 
     await this.updateIssueUseCase.execute({
       issueKey: params.issueKey,

@@ -140,9 +140,8 @@ describe("EpicRelationResolver", () => {
         summary: { name: "Summary", operations: ["set"] },
       });
 
-      const id = await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta(
-        "PROJ-1",
-      );
+      const id =
+        await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta("PROJ-1");
       expect(id).toBeUndefined();
     });
 
@@ -155,9 +154,8 @@ describe("EpicRelationResolver", () => {
         },
       });
 
-      const id = await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta(
-        "PROJ-1",
-      );
+      const id =
+        await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta("PROJ-1");
       expect(id).toBe("customfield_10014");
     });
 
@@ -175,9 +173,8 @@ describe("EpicRelationResolver", () => {
         },
       });
 
-      const id = await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta(
-        "PROJ-1",
-      );
+      const id =
+        await resolver.tryOptionalSingleEpicLinkFieldFromEditMeta("PROJ-1");
       expect(id).toBeUndefined();
     });
   });

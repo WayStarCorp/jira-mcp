@@ -18,10 +18,14 @@ export interface GetIssueAttachmentsResult {
 }
 
 export interface GetIssueAttachmentsUseCase {
-  execute(request: GetIssueAttachmentsRequest): Promise<GetIssueAttachmentsResult>;
+  execute(
+    request: GetIssueAttachmentsRequest,
+  ): Promise<GetIssueAttachmentsResult>;
 }
 
-export class GetIssueAttachmentsUseCaseImpl implements GetIssueAttachmentsUseCase {
+export class GetIssueAttachmentsUseCaseImpl
+  implements GetIssueAttachmentsUseCase
+{
   constructor(private readonly issueRepository: IssueRepository) {}
 
   public async execute(

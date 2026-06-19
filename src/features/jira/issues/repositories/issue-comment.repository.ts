@@ -1,11 +1,7 @@
 import { logger } from "@core/logging";
 import type { HttpClient } from "@features/jira/client/http/jira.http.types";
 import { ensureADFFormat } from "@features/jira/shared/parsers/adf.parser";
-import type {
-  Comment,
-  GetCommentsOptions,
-  IssueCommentsPage,
-} from "../models";
+import type { Comment, GetCommentsOptions, IssueCommentsPage } from "../models";
 
 /**
  * Comments API response interface

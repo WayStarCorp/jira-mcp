@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import { AttachmentTooLargeError } from "@core/errors";
 import { adaptToMcpContent } from "@core/responses/mcp-adapter.util";
 import type { McpResponse } from "@core/responses/mcp-response.types";
-import { AttachmentTooLargeError } from "@core/errors";
-import { DEFAULT_MAX_BYTES } from "@features/jira/client/http/attachment-url.validator";
 import { DownloadAttachmentHandler } from "@features/jira/attachments/handlers/download-attachment.handler";
 import type { DownloadAttachmentUseCase } from "@features/jira/attachments/use-cases/download-attachment.use-case";
 import type {
   AttachmentValidator,
   DownloadAttachmentParams,
 } from "@features/jira/attachments/validators/attachment.validator";
+import { DEFAULT_MAX_BYTES } from "@features/jira/client/http/attachment-url.validator";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();

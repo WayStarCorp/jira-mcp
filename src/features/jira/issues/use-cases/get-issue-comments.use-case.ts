@@ -31,7 +31,9 @@ export class GetIssueCommentsUseCaseImpl implements GetIssueCommentsUseCase {
     private readonly validator: IssueCommentValidator,
   ) {}
 
-  async execute(params: GetIssueCommentsParams): Promise<CommentsWithAttachments> {
+  async execute(
+    params: GetIssueCommentsParams,
+  ): Promise<CommentsWithAttachments> {
     const validatedParams = this.validator.validateGetCommentsParams(params);
     const options = {
       issueKey: validatedParams.issueKey,

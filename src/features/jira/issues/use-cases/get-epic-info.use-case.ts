@@ -1,13 +1,13 @@
 import { logger } from "@core/logging";
 import type { Issue } from "../models/issue.models";
 import type { IssueRepository } from "../repositories/issue.repository";
+import { escapeJqlQuotedLiteral } from "../utils/jql-escape";
 import type { GetEpicInfoParams } from "../validators/epic.validator";
 import type {
   EpicRelationMode,
   EpicRelationResolver,
   ResolvedEpicRelation,
 } from "./epic-relation-resolver";
-import { escapeJqlQuotedLiteral } from "../utils/jql-escape";
 import type { SearchIssuesUseCase } from "./search-issues.use-case";
 
 const EPIC_INFO_FIELDS = [
@@ -204,11 +204,7 @@ export class GetEpicInfoUseCaseImpl implements GetEpicInfoUseCase {
   private stringifyEpicLinkRaw(raw: unknown): string | null {
     if (raw == null) return null;
     if (typeof raw === "string") return raw;
-    if (
-      typeof raw === "object" &&
-      raw !== null &&
-      "key" in raw
-    ) {
+    if (typeof raw === "object" && raw !== null && "key" in raw) {
       const maybeKey = (raw as Record<string, unknown>).key;
       if (typeof maybeKey === "string") {
         return maybeKey;

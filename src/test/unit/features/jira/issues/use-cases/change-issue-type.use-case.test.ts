@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { ChangeIssueTypeParamsValidationError } from "@features/jira/issues/validators/errors";
 import { ChangeIssueTypeUseCaseImpl } from "@features/jira/issues/use-cases/change-issue-type.use-case";
+import { ChangeIssueTypeParamsValidationError } from "@features/jira/issues/validators/errors";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();
@@ -131,8 +131,12 @@ describe("ChangeIssueTypeUseCase", () => {
       notifyUsers: true,
     });
 
-    await expect(rejection).rejects.toBeInstanceOf(ChangeIssueTypeParamsValidationError);
-    await expect(rejection).rejects.toThrow(/Conflicting field definitions for keys: customfield_1/);
+    await expect(rejection).rejects.toBeInstanceOf(
+      ChangeIssueTypeParamsValidationError,
+    );
+    await expect(rejection).rejects.toThrow(
+      /Conflicting field definitions for keys: customfield_1/,
+    );
 
     expect(updateExecute).not.toHaveBeenCalled();
   });

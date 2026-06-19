@@ -53,9 +53,13 @@ describe("GetIssueCommentsUseCaseImpl", () => {
     validateMock = mock((params: { issueKey: string }) => params);
 
     useCase = new GetIssueCommentsUseCaseImpl(
-      { getIssueComments: getIssueCommentsMock } as unknown as IssueCommentRepository,
+      {
+        getIssueComments: getIssueCommentsMock,
+      } as unknown as IssueCommentRepository,
       { getIssue: getIssueMock } as unknown as IssueRepository,
-      { validateGetCommentsParams: validateMock } as unknown as IssueCommentValidator,
+      {
+        validateGetCommentsParams: validateMock,
+      } as unknown as IssueCommentValidator,
     );
   });
 

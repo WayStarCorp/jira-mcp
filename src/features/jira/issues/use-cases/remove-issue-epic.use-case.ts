@@ -39,7 +39,9 @@ export class RemoveIssueEpicUseCaseImpl implements RemoveIssueEpicUseCase {
 
   private async buildRemovalFields(params: RemoveIssueEpicParams): Promise<{
     fields: Record<string, unknown>;
-    resolved: { mode: "parent" } | { mode: "epicLink"; epicLinkFieldId: string };
+    resolved:
+      | { mode: "parent" }
+      | { mode: "epicLink"; epicLinkFieldId: string };
   }> {
     if (params.relationMode === "parent") {
       return this.buildParentRemovalFields(params.issueKey);

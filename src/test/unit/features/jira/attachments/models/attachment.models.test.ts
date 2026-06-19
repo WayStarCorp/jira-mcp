@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
-  mapJiraAttachment,
   type JiraAttachmentDto,
+  mapJiraAttachment,
 } from "@features/jira/attachments/models/attachment.models";
 
 describe("mapJiraAttachment", () => {

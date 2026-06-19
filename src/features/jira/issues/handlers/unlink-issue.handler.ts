@@ -8,8 +8,8 @@ import {
 import { IssueUnlinkedFormatter } from "@features/jira/issues/formatters/issue-link.formatter";
 import type { UnlinkIssueUseCase } from "@features/jira/issues/use-cases/unlink-issue.use-case";
 import {
-  unlinkIssueParamsSchema,
   type UnlinkIssueParams,
+  unlinkIssueParamsSchema,
 } from "@features/jira/issues/validators/issue-link.validator";
 
 export class UnlinkIssueHandler extends BaseToolHandler<

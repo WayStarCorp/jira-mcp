@@ -3,8 +3,8 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import type { ImageContent } from "@core/responses/mcp-content.types";
 import { adaptToMcpContent } from "@core/responses/mcp-adapter.util";
+import type { ImageContent } from "@core/responses/mcp-content.types";
 import { createSuccessResponse } from "@core/responses/mcp-response.util";
 
 describe("adaptToMcpContent", () => {

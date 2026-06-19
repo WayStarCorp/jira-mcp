@@ -5,11 +5,8 @@
  */
 
 import { AttachmentTooLargeError, McpError } from "@core/errors";
+import { type McpResponse, createSuccessResponse } from "@core/responses";
 import { BaseToolHandler } from "@core/tools/tool-handler.class";
-import {
-  createSuccessResponse,
-  type McpResponse,
-} from "@core/responses";
 import {
   JiraApiError,
   JiraAuthenticationError,
@@ -59,12 +56,11 @@ export class DownloadAttachmentHandler extends BaseToolHandler<
         `Downloading attachment: ${validatedParams.attachmentId}`,
       );
 
-      const { metadata, content } = await this.downloadAttachmentUseCase.execute(
-        {
+      const { metadata, content } =
+        await this.downloadAttachmentUseCase.execute({
           attachmentId: validatedParams.attachmentId,
           maxBytes: validatedParams.maxBytes,
-        },
-      );
+        });
 
       if (metadata.mimeType.startsWith("image/")) {
         return {
@@ -91,9 +87,7 @@ export class DownloadAttachmentHandler extends BaseToolHandler<
     }
   }
 
-  protected formatResult(
-    result: DownloadAttachmentExecuteResult,
-  ): McpResponse {
+  protected formatResult(result: DownloadAttachmentExecuteResult): McpResponse {
     if (result.responseKind === "image") {
       return createSuccessResponse("", {
         content: [

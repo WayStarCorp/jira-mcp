@@ -52,10 +52,9 @@ describe("ProjectPermissionRepository Integration Tests", () => {
 
     async function testMypermissionsEndpoint() {
       try {
-        const permissions =
-          await permissionRepository.getProjectPermissions(
-            getJiraTestProjectKey(),
-          );
+        const permissions = await permissionRepository.getProjectPermissions(
+          getJiraTestProjectKey(),
+        );
         validatePermissionsResponse(permissions);
         logPermissionsSuccess(permissions);
       } catch (error) {
@@ -148,10 +147,9 @@ describe("ProjectPermissionRepository Integration Tests", () => {
       }
 
       try {
-        const hasPermission =
-          await permissionRepository.hasEditIssuePermission(
-            getJiraTestProjectKey(),
-          );
+        const hasPermission = await permissionRepository.hasEditIssuePermission(
+          getJiraTestProjectKey(),
+        );
 
         console.log(
           `🔍 EDIT_ISSUES permission for ${getJiraTestProjectKey()}: ${hasPermission ? "✅ GRANTED" : "❌ DENIED"}`,

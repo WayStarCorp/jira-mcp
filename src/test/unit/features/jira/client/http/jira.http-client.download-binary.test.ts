@@ -41,7 +41,9 @@ function createBinaryResponse(
       },
     }),
     arrayBuffer: mock(() =>
-      Promise.resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)),
+      Promise.resolve(
+        data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength),
+      ),
     ),
   };
 }
@@ -83,7 +85,9 @@ describe("JiraHttpClient.downloadBinary", () => {
   it("downloads binary content from allowed Jira host", async () => {
     const payload = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
     mockFetch.mockResolvedValue(
-      createBinaryResponse(payload, { contentLength: String(payload.byteLength) }),
+      createBinaryResponse(payload, {
+        contentLength: String(payload.byteLength),
+      }),
     );
 
     const result = await client.downloadBinary(ALLOWED_CONTENT_URL, 1024);
@@ -108,9 +112,9 @@ describe("JiraHttpClient.downloadBinary", () => {
     const response = createBinaryResponse(payload, { contentLength: "999" });
     mockFetch.mockResolvedValue(response);
 
-    await expect(client.downloadBinary(ALLOWED_CONTENT_URL, 10)).rejects.toThrow(
-      AttachmentTooLargeError,
-    );
+    await expect(
+      client.downloadBinary(ALLOWED_CONTENT_URL, 10),
+    ).rejects.toThrow(AttachmentTooLargeError);
 
     expect(response.arrayBuffer).not.toHaveBeenCalled();
   });
@@ -128,12 +132,14 @@ describe("JiraHttpClient.downloadBinary", () => {
 
   it("rejects redirect to forbidden host without second fetch", async () => {
     mockFetch.mockResolvedValue(
-      createRedirectResponse("https://evil.example.com/attachment/content/10042"),
+      createRedirectResponse(
+        "https://evil.example.com/attachment/content/10042",
+      ),
     );
 
-    await expect(client.downloadBinary(ALLOWED_CONTENT_URL, 1024)).rejects.toThrow(
-      JiraApiError,
-    );
+    await expect(
+      client.downloadBinary(ALLOWED_CONTENT_URL, 1024),
+    ).rejects.toThrow(JiraApiError);
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
@@ -145,7 +151,9 @@ describe("JiraHttpClient.downloadBinary", () => {
 
     mockFetch.mockResolvedValueOnce(createRedirectResponse(mediaUrl, 303));
     mockFetch.mockResolvedValueOnce(
-      createBinaryResponse(payload, { contentLength: String(payload.byteLength) }),
+      createBinaryResponse(payload, {
+        contentLength: String(payload.byteLength),
+      }),
     );
 
     const result = await client.downloadBinary(ALLOWED_CONTENT_URL, 1024);
@@ -173,9 +181,9 @@ describe("JiraHttpClient.downloadBinary", () => {
       arrayBuffer: mock(() => Promise.resolve(largeChunk.buffer)),
     });
 
-    await expect(client.downloadBinary(ALLOWED_CONTENT_URL, 10)).rejects.toThrow(
-      AttachmentTooLargeError,
-    );
+    await expect(
+      client.downloadBinary(ALLOWED_CONTENT_URL, 10),
+    ).rejects.toThrow(AttachmentTooLargeError);
   });
 
   it("rejects private IP host before fetch", async () => {
@@ -192,7 +200,9 @@ describe("JiraHttpClient.downloadBinary", () => {
     const httpUrl =
       "http://example.atlassian.net/rest/api/3/attachment/content/10042";
 
-    await expect(client.downloadBinary(httpUrl, 1024)).rejects.toThrow(JiraApiError);
+    await expect(client.downloadBinary(httpUrl, 1024)).rejects.toThrow(
+      JiraApiError,
+    );
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -207,7 +217,9 @@ describe("JiraHttpClient.downloadBinary", () => {
       );
     }
     mockFetch.mockResolvedValueOnce(
-      createBinaryResponse(payload, { contentLength: String(payload.byteLength) }),
+      createBinaryResponse(payload, {
+        contentLength: String(payload.byteLength),
+      }),
     );
 
     const result = await client.downloadBinary(ALLOWED_CONTENT_URL, 1024);
@@ -227,9 +239,9 @@ describe("JiraHttpClient.downloadBinary", () => {
       );
     }
 
-    await expect(client.downloadBinary(ALLOWED_CONTENT_URL, 1024)).rejects.toThrow(
-      /Too many redirects/,
-    );
+    await expect(
+      client.downloadBinary(ALLOWED_CONTENT_URL, 1024),
+    ).rejects.toThrow(/Too many redirects/);
 
     expect(mockFetch).toHaveBeenCalledTimes(MAX_REDIRECTS + 1);
   });

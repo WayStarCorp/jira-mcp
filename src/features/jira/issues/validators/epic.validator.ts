@@ -4,7 +4,10 @@ import { issueKeySchema } from "./issue-params.validator";
 export const epicRelationModeSchema = z.enum(["auto", "parent", "epicLink"]);
 export const epicFieldIdSchema = z
   .string()
-  .regex(/^customfield_\d+$/, "Epic field id must be in the format customfield_12345");
+  .regex(
+    /^customfield_\d+$/,
+    "Epic field id must be in the format customfield_12345",
+  );
 
 export const getEpicInfoParamsSchema = z.object({
   issueKey: issueKeySchema,

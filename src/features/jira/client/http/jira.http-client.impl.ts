@@ -143,7 +143,9 @@ export class JiraHttpClient implements HttpClient {
             );
           }
           if (redirectsFollowed >= maxRedirects) {
-            throw new JiraApiError("Too many redirects while downloading attachment");
+            throw new JiraApiError(
+              "Too many redirects while downloading attachment",
+            );
           }
           redirectsFollowed++;
           currentUrl = this.attachmentUrlValidator.assertRedirectTarget(

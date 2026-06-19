@@ -419,7 +419,8 @@ describe("CommentsFormatter", () => {
           size: 1024,
           created: "2024-01-15T10:00:00.000Z",
           author: "John Doe",
-          contentUrl: "https://example.atlassian.net/secure/attachment/10042/file.png",
+          contentUrl:
+            "https://example.atlassian.net/secure/attachment/10042/file.png",
           isImage: true,
         },
       ];
@@ -481,7 +482,8 @@ describe("CommentsFormatter", () => {
           size: 1024,
           created: "2024-01-15T10:00:00.000Z",
           author: "John Doe",
-          contentUrl: "https://example.atlassian.net/secure/attachment/15894/file.png",
+          contentUrl:
+            "https://example.atlassian.net/secure/attachment/15894/file.png",
           isImage: true,
         },
       ];
@@ -528,7 +530,8 @@ describe("CommentsFormatter", () => {
             size: 1024,
             created: "2024-01-15T10:00:00.000Z",
             author: "John Doe",
-            contentUrl: "https://example.atlassian.net/secure/attachment/10042/file.png",
+            contentUrl:
+              "https://example.atlassian.net/secure/attachment/10042/file.png",
             isImage: true,
           },
         ],

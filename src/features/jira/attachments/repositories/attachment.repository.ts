@@ -95,8 +95,7 @@ export class AttachmentRepositoryImpl implements AttachmentRepository {
     if (
       attachmentId &&
       error instanceof JiraApiError &&
-      (error.statusCode === 404 ||
-        error.code === JiraErrorCode.NOT_FOUND_ERROR)
+      (error.statusCode === 404 || error.code === JiraErrorCode.NOT_FOUND_ERROR)
     ) {
       throw new McpError(`Attachment ${attachmentId} not found`);
     }

@@ -12,8 +12,8 @@ import {
 } from "@features/jira/client/errors";
 import { GetIssueCommentsHandler } from "@features/jira/issues/handlers/get-issue-comments.handler";
 import type { Comment } from "@features/jira/issues/models/comment.models";
-import type { CommentsWithAttachments } from "@features/jira/issues/use-cases/get-issue-comments.use-case";
 import type { GetIssueCommentsUseCase } from "@features/jira/issues/use-cases";
+import type { CommentsWithAttachments } from "@features/jira/issues/use-cases/get-issue-comments.use-case";
 import type { IssueCommentValidator } from "@features/jira/issues/validators";
 import { jiraApiMocks } from "@test/utils/mock-helpers";
 import { setupTests } from "@test/utils/test-setup";
@@ -70,7 +70,9 @@ describe("GetIssueCommentsHandler", () => {
   beforeEach(() => {
     // Create mocks
     mockUseCase = {
-      execute: mock(() => Promise.resolve(commentsWithAttachments(mockComments))),
+      execute: mock(() =>
+        Promise.resolve(commentsWithAttachments(mockComments)),
+      ),
     };
 
     mockValidator = {
@@ -204,22 +206,23 @@ describe("GetIssueCommentsHandler", () => {
     });
 
     it("should show issue total when fewer comments are returned than exist on issue", async () => {
-      const displayedComments: Comment[] = Array.from({ length: 3 }, (_, i) => ({
-        id: `${i + 1}`,
-        self: `https://test.atlassian.net/rest/api/3/issue/123/comment/${i + 1}`,
-        author: {
-          displayName: `User ${i + 1}`,
-          accountId: `user-${i + 1}`,
-        },
-        body: `Comment ${i + 1}`,
-        created: "2024-01-15T10:30:00.000Z",
-        updated: "2024-01-15T10:30:00.000Z",
-      }));
+      const displayedComments: Comment[] = Array.from(
+        { length: 3 },
+        (_, i) => ({
+          id: `${i + 1}`,
+          self: `https://test.atlassian.net/rest/api/3/issue/123/comment/${i + 1}`,
+          author: {
+            displayName: `User ${i + 1}`,
+            accountId: `user-${i + 1}`,
+          },
+          body: `Comment ${i + 1}`,
+          created: "2024-01-15T10:30:00.000Z",
+          updated: "2024-01-15T10:30:00.000Z",
+        }),
+      );
 
       mockUseCase.execute = mock(() =>
-        Promise.resolve(
-          commentsWithAttachments(displayedComments, [], 50),
-        ),
+        Promise.resolve(commentsWithAttachments(displayedComments, [], 50)),
       );
 
       const result = (await handler.handle({
@@ -248,9 +251,7 @@ describe("GetIssueCommentsHandler", () => {
 
       // Setup mock use case to return limited comments
       mockUseCase.execute = mock(() =>
-        Promise.resolve(
-          commentsWithAttachments(manyComments.slice(0, 3)),
-        ),
+        Promise.resolve(commentsWithAttachments(manyComments.slice(0, 3))),
       );
 
       const result = (await handler.handle({

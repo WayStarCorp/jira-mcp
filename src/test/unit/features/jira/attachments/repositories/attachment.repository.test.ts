@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { AttachmentTooLargeError, McpError } from "@core/errors";
+import type { AttachmentMetadata } from "@features/jira/attachments/models";
+import { AttachmentRepositoryImpl } from "@features/jira/attachments/repositories/attachment.repository";
 import {
   JiraApiError,
   JiraAuthenticationError,
@@ -7,8 +9,6 @@ import {
   JiraPermissionError,
 } from "@features/jira/client/errors";
 import type { HttpClient } from "@features/jira/client/http/jira.http.types";
-import type { AttachmentMetadata } from "@features/jira/attachments/models";
-import { AttachmentRepositoryImpl } from "@features/jira/attachments/repositories/attachment.repository";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();
@@ -20,8 +20,7 @@ const sampleDto = {
   size: 1024,
   created: "2026-05-20T10:00:00.000+0000",
   author: { displayName: "user@example.com" },
-  content:
-    "https://example.atlassian.net/rest/api/3/attachment/content/15894",
+  content: "https://example.atlassian.net/rest/api/3/attachment/content/15894",
 };
 
 const sampleMetadata: AttachmentMetadata = {

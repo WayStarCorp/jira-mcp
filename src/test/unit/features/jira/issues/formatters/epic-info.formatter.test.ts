@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
+import { EpicInfoFormatter } from "@features/jira/issues/formatters/epic-info.formatter";
 import {
   EPIC_CHILDREN_SKIPPED_MISSING_EPIC_FIELD_ID,
   type EpicInfoResult,
 } from "@features/jira/issues/use-cases/get-epic-info.use-case";
-import { EpicInfoFormatter } from "@features/jira/issues/formatters/epic-info.formatter";
 import { createMockIssue } from "@test/mocks/issues/issue-mock-factory";
 import { setupTests } from "@test/utils/test-setup";
 
@@ -119,9 +119,7 @@ describe("EpicInfoFormatter", () => {
   });
 
   it("includes Epic Link value line when value is non-empty", () => {
-    const out = formatter.format(
-      minimalResult({ epicLinkValue: "PROJ-42" }),
-    );
+    const out = formatter.format(minimalResult({ epicLinkValue: "PROJ-42" }));
     expect(out).toContain("**Epic Link value on issue**: PROJ-42");
   });
 });

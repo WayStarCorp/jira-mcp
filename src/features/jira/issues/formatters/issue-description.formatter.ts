@@ -30,9 +30,7 @@ export class IssueDescriptionFormatter {
 
     // Handle ADF document or string description
     if (typeof issue.fields.description === "object") {
-      const { markdown, media } = parseADFWithMedia(
-        issue.fields.description,
-      );
+      const { markdown, media } = parseADFWithMedia(issue.fields.description);
       descriptionContent = markdown;
       const inlineBlock = formatInlineMediaBlock(
         media,

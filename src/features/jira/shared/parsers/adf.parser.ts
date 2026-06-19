@@ -323,9 +323,7 @@ export class ADFToMarkdownWithMediaParser extends ADFToMarkdownParser {
   /**
    * Parse ADF content to markdown and collect inline media metadata
    */
-  parseWithMedia(
-    adf: ADFNode | string | null | undefined,
-  ): ParsedADFWithMedia {
+  parseWithMedia(adf: ADFNode | string | null | undefined): ParsedADFWithMedia {
     this.collectedMedia.length = 0;
     const markdown = this.parse(adf);
     return { markdown, media: [...this.collectedMedia] };

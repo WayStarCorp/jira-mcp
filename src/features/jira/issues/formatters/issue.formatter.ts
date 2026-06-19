@@ -41,7 +41,10 @@ export class IssueFormatter implements Formatter<Issue, string> {
     }
 
     const validationResult = validateIssue(issue);
-    if (!validationResult.success || this.fieldValidator.hasEmptyFields(issue)) {
+    if (
+      !validationResult.success ||
+      this.fieldValidator.hasEmptyFields(issue)
+    ) {
       return this.headerFormatter.formatFallbackHeader(issue.key || "");
     }
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { GetIssueAttachmentsUseCaseImpl } from "@features/jira/attachments/use-cases/get-issue-attachments.use-case";
 import { JiraNotFoundError } from "@features/jira/client/errors";
 import type { IssueRepository } from "@features/jira/issues/repositories/issue.repository";
-import { GetIssueAttachmentsUseCaseImpl } from "@features/jira/attachments/use-cases/get-issue-attachments.use-case";
 import { setupTests } from "@test/utils/test-setup";
 
 setupTests();
@@ -25,7 +25,8 @@ describe("GetIssueAttachmentsUseCaseImpl", () => {
               size: 250_880,
               created: "2026-05-20T10:00:00.000Z",
               author: { displayName: "user@example.com" },
-              content: "https://example.atlassian.net/secure/attachment/10042/file.png",
+              content:
+                "https://example.atlassian.net/secure/attachment/10042/file.png",
             },
           ],
         },

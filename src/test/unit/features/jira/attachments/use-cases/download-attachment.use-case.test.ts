@@ -17,7 +17,8 @@ describe("DownloadAttachmentUseCaseImpl", () => {
     size: 4,
     created: "2026-05-20T10:00:00.000Z",
     author: "user@example.com",
-    contentUrl: "https://example.atlassian.net/secure/attachment/10042/file.png",
+    contentUrl:
+      "https://example.atlassian.net/secure/attachment/10042/file.png",
     isImage: true,
   };
 

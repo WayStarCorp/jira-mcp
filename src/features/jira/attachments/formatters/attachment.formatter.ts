@@ -12,8 +12,7 @@ const BYTES_PER_MB = BYTES_PER_KB * 1024;
 export function formatAttachmentSize(bytes: number): string {
   if (bytes >= BYTES_PER_MB) {
     const mb = bytes / BYTES_PER_MB;
-    const rounded =
-      mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10;
+    const rounded = mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10;
     return `${rounded} MB`;
   }
   const kb = Math.round(bytes / BYTES_PER_KB);

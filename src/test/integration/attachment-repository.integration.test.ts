@@ -3,10 +3,10 @@
  * Uses attachment id 15894 on SUPP-79 when credentials are set (see attachments spike).
  */
 import { beforeAll, describe, expect, test } from "bun:test";
-import { HARD_MAX_BYTES } from "@features/jira/client/http/attachment-url.validator";
+import { AttachmentRepositoryImpl } from "@features/jira/attachments/repositories/attachment.repository";
 import { JiraConfigService } from "@features/jira/client/config";
 import { JiraHttpClient } from "@features/jira/client/http";
-import { AttachmentRepositoryImpl } from "@features/jira/attachments/repositories/attachment.repository";
+import { HARD_MAX_BYTES } from "@features/jira/client/http/attachment-url.validator";
 import {
   getJiraCredentialsSkipReason,
   hasJiraCredentials,
