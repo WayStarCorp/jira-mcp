@@ -1,6 +1,6 @@
 # Attachments & Images (v0.7.0) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Дать агенту список вложений, скачивание image/text через MCP, inline ADF media в issue/comments — по [design spec](../specs/2026-05-25-attachments-design.md).
 
@@ -36,7 +36,7 @@
 - Create: `docs/superpowers/spikes/2026-05-25-attachments-spike.md`
 - Modify (if findings differ): `docs/superpowers/specs/2026-05-25-attachments-design.md` (ADF Media Resolution, Open Questions → allowed hosts)
 
-- [ ] **Step 1: Получить issue payload**
+- [x] **Step 1: Получить issue payload**
 
 Через настроенный Jira (`JIRA_HOST`, `JIRA_USERNAME`, `JIRA_API_TOKEN`) или MCP `jira_get_issue` / raw API:
 
@@ -47,7 +47,7 @@ curl -s -u "$JIRA_USERNAME:$JIRA_API_TOKEN" \
   | bun -e "const j=JSON.parse(await Bun.stdin.text()); console.log(JSON.stringify({attachments:j.fields?.attachment, description:j.fields?.description}, null, 2))"
 ```
 
-- [ ] **Step 2: Зафиксировать сравнение media id ↔ attachment id**
+- [x] **Step 2: Зафиксировать сравнение media id ↔ attachment id**
 
 В spike-doc записать:
 
@@ -55,7 +55,7 @@ curl -s -u "$JIRA_USERNAME:$JIRA_API_TOKEN" \
 - каждый `fields.attachment[].id`;
 - совпадают ли (id-bridge: yes/no/partial).
 
-- [ ] **Step 3: Проверить attachment metadata + content URL**
+- [x] **Step 3: Проверить attachment metadata + content URL**
 
 Для одного `attachmentId` из списка:
 
@@ -66,11 +66,11 @@ curl -s -u "$JIRA_USERNAME:$JIRA_API_TOKEN" \
 
 Записать: `content` URL, scheme, host (совпадает с `JIRA_HOST` или CDN).
 
-- [ ] **Step 4: Обновить spec при необходимости**
+- [x] **Step 4: Обновить spec при необходимости**
 
 Если `contentUrl` host ≠ `JIRA_HOST` — в spec явно добавить host в allowlist (раздел HTTP Client / Open Questions). Если id-bridge не совпадает — оставить conditional enrichment (уже в spec).
 
-- [ ] **Step 5: Commit spike doc only**
+- [x] **Step 5: Commit spike doc only**
 
 ```bash
 git add docs/superpowers/spikes/2026-05-25-attachments-spike.md docs/superpowers/specs/2026-05-25-attachments-design.md
@@ -88,7 +88,7 @@ git commit -m "docs/superpowers/spikes/2026-05-25-attachments-spike.md: Jira att
 - Modify: `src/core/responses/mcp-adapter.util.ts`
 - Create: `src/test/unit/core/responses/mcp-adapter.util.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```typescript
 import { describe, expect, test } from "bun:test";
@@ -118,12 +118,12 @@ describe("adaptToMcpContent", () => {
 });
 ```
 
-- [ ] **Step 2: Run test — expect FAIL**
+- [x] **Step 2: Run test — expect FAIL**
 
 Run: `bun test src/test/unit/core/responses/mcp-adapter.util.test.ts`
 Expected: FAIL (overload/signature or passthrough missing)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `mcp-response.types.ts`:
 
@@ -165,11 +165,11 @@ export function adaptToMcpContent(response: McpResponse): McpContentResponse {
 }
 ```
 
-- [ ] **Step 4: Run test — expect PASS**
+- [x] **Step 4: Run test — expect PASS**
 
 Run: `bun test src/test/unit/core/responses/mcp-adapter.util.test.ts`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/core/responses/ src/test/unit/core/responses/mcp-adapter.util.test.ts
@@ -187,7 +187,7 @@ git commit -m "src/core/responses/: McpResponse.content passthrough in adaptToMc
 - Create: `src/test/unit/core/errors/attachment-too-large.error.test.ts`
 - Modify: `src/core/errors/index.ts`
 
-- [ ] **Step 1: Write failing error test**
+- [x] **Step 1: Write failing error test**
 
 ```typescript
 import { describe, expect, test } from "bun:test";
@@ -201,11 +201,11 @@ describe("AttachmentTooLargeError", () => {
 });
 ```
 
-- [ ] **Step 2: Run — FAIL**
+- [x] **Step 2: Run — FAIL**
 
 `bun test src/test/unit/core/errors/attachment-too-large.error.test.ts`
 
-- [ ] **Step 3: Implement models + error**
+- [x] **Step 3: Implement models + error**
 
 ```typescript
 // attachment.models.ts
@@ -254,9 +254,9 @@ export class AttachmentTooLargeError extends Error {
 }
 ```
 
-- [ ] **Step 4: Run — PASS**
+- [x] **Step 4: Run — PASS**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/jira/attachments/models/ src/core/errors/attachment-too-large.error.ts src/test/unit/core/errors/
@@ -276,13 +276,13 @@ git commit -m "src/features/jira/attachments/models/attachment.models.ts: Attach
 
 **Constants:** `DEFAULT_MAX_BYTES = 10 * 1024 * 1024`, `HARD_MAX_BYTES = 50 * 1024 * 1024`
 
-- [ ] **Step 1: Write failing tests** (forbidden host, Content-Length over limit, success buffer)
+- [x] **Step 1: Write failing tests** (forbidden host, Content-Length over limit, success buffer)
 
 Mock `fetch` or use stub URL on same host as config.
 
-- [ ] **Step 2: Run — FAIL**
+- [x] **Step 2: Run — FAIL**
 
-- [ ] **Step 3: Implement `downloadBinary`**
+- [x] **Step 3: Implement `downloadBinary`**
 
 - Validate URL: HTTPS, host in allowlist (`JIRA_HOST` origin + spike hosts)
 - Reject redirects to other origins
@@ -290,11 +290,11 @@ Mock `fetch` or use stub URL on same host as config.
 - Stream read with running byte count cap
 - Auth headers from `JiraRequestBuilder`, never logged
 
-- [ ] **Step 4: Run — PASS**
+- [x] **Step 4: Run — PASS**
 
 `bun test src/test/unit/features/jira/client/http/jira.http-client.download-binary.test.ts`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/jira/client/http/
@@ -310,9 +310,9 @@ git commit -m "src/features/jira/client/http/jira.http-client.impl.ts: downloadB
 - Create: `src/features/jira/attachments/repositories/attachment.repository.ts`
 - Create: `src/test/integration/attachment-repository.integration.test.ts`
 
-- [ ] **Step 1: Integration test skeleton** (skip without credentials — pattern from `issue-operations.integration.test.ts`)
+- [x] **Step 1: Integration test skeleton** (skip without credentials — pattern from `issue-operations.integration.test.ts`)
 
-- [ ] **Step 2: Implement repository**
+- [x] **Step 2: Implement repository**
 
 ```typescript
 export class AttachmentRepositoryImpl {
@@ -335,9 +335,9 @@ export class AttachmentRepositoryImpl {
 }
 ```
 
-- [ ] **Step 3: Run integration tests** (with creds) or unit with mock `HttpClient`
+- [x] **Step 3: Run integration tests** (with creds) or unit with mock `HttpClient`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
@@ -348,7 +348,7 @@ export class AttachmentRepositoryImpl {
 - Modify: `src/features/jira/shared/parsers/adf.parser.ts`
 - Modify: `src/test/unit/features/jira/shared/parsers/adf.parser.test.ts`
 
-- [ ] **Step 1: Add failing tests** for `mediaSingle` / `media` / `mediaGroup`; assert `parseADF()` unchanged for existing cases
+- [x] **Step 1: Add failing tests** for `mediaSingle` / `media` / `mediaGroup`; assert `parseADF()` unchanged for existing cases
 
 ```typescript
 import { parseADF, parseADFWithMedia } from "@features/jira/shared/parsers/adf.parser";
@@ -373,7 +373,7 @@ test("parseADFWithMedia collects media ids", () => {
 });
 ```
 
-- [ ] **Step 2–4: Implement, run, commit**
+- [x] **Step 2–4: Implement, run, commit**
 
 ```bash
 git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia for inline media"
@@ -390,9 +390,9 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 - Create: `src/test/unit/features/jira/attachments/formatters/attachment.formatter.test.ts`
 - Create: `src/test/unit/features/jira/attachments/formatters/inline-media.formatter.test.ts`
 
-- [ ] **TDD:** empty list message, isImage lines, resolved vs unresolved inline (use spike id-bridge flag)
+- [x] **TDD:** empty list message, isImage lines, resolved vs unresolved inline (use spike id-bridge flag)
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ---
 
@@ -403,11 +403,11 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 - Create: `get-issue-attachments.use-case.ts`, `get-issue-attachments.handler.ts`, validator schema
 - Reuse `IssueRepository.getIssue` — extract `fields.attachment`
 
-- [ ] **Handler returns markdown string** via `AttachmentFormatter`
+- [x] **Handler returns markdown string** via `AttachmentFormatter`
 
-- [ ] **Unit test handler** with mocked use case
+- [x] **Unit test handler** with mocked use case
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ---
 
@@ -425,9 +425,9 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 - text/*, application/json → decode UTF-8 (charset from header if present)
 - else → metadata-only `TextContent` string
 
-- [ ] **Unit test:** image path produces `content[0].type === "image"`, not JSON in text
+- [x] **Unit test:** image path produces `content[0].type === "image"`, not JSON in text
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ---
 
@@ -438,11 +438,11 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 - Modify: `src/features/jira/issues/formatters/issue.formatter.ts`
 - Modify: `src/features/jira/issues/formatters/issue-description.formatter.ts`
 
-- [ ] **Append `## Attachments (N)`** when `fields.attachment.length > 0`
-- [ ] **Inline media block** after description when `parseADFWithMedia` finds media
-- [ ] **Tests** in existing `get-issue.handler.test.ts` / formatter tests
+- [x] **Append `## Attachments (N)`** when `fields.attachment.length > 0`
+- [x] **Inline media block** after description when `parseADFWithMedia` finds media
+- [x] **Tests** in existing `get-issue.handler.test.ts` / formatter tests
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ---
 
@@ -454,10 +454,10 @@ git commit -m "src/features/jira/shared/parsers/adf.parser.ts: parseADFWithMedia
 - Modify: `comments.formatter.ts`
 - Modify: `get-issue-comments.handler.test.ts`
 
-- [ ] **Use case:** `Promise.all` or sequential: comments + `issueRepository.getIssue` for attachments
-- [ ] **Formatter:** `commentId` from comment entity, not ADF
+- [x] **Use case:** `Promise.all` or sequential: comments + `issueRepository.getIssue` for attachments
+- [x] **Formatter:** `commentId` from comment entity, not ADF
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ---
 
@@ -477,9 +477,9 @@ Add to `JiraTools`:
 
 New config group `attachments` in `getToolConfigGroups`.
 
-- [ ] **Smoke:** server starts, tool count +2
+- [x] **Smoke:** server starts, tool count +2
 
-- [ ] **Commit**
+- [x] **Commit**
 
 ```bash
 git commit -m "src/features/jira/tools/: register jira_get_issue_attachments and jira_download_attachment"
@@ -489,8 +489,8 @@ git commit -m "src/features/jira/tools/: register jira_get_issue_attachments and
 
 ### Task 12: Final verification
 
-- [ ] **Run:** `bun run typecheck ; bun test`
-- [ ] **Fix any failures**
+- [x] **Run:** `bun run typecheck ; bun test`
+- [x] **Fix any failures**
 
 ---
 
@@ -501,9 +501,9 @@ git commit -m "src/features/jira/tools/: register jira_get_issue_attachments and
 - Modify: `package.json` version `0.7.0`
 - Modify: `CHANGELOG.md`, `README.md`
 
-- [ ] **CHANGELOG:** two tools, issue attachments section, ADF inline media
-- [ ] **README:** workflow list → download by id
-- [ ] **Commit** (version bump separate or with last feature commit per team habit)
+- [x] **CHANGELOG:** two tools, issue attachments section, ADF inline media
+- [x] **README:** workflow list → download by id
+- [x] **Commit** (version bump separate or with last feature commit per team habit)
 
 ---
 

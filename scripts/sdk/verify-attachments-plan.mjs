@@ -7,6 +7,9 @@
  *   node scripts/sdk/verify-attachments-plan.mjs
  *   CURSOR_API_KEY=cursor_... node scripts/sdk/verify-attachments-plan.mjs --agent
  *
+ * Windows: if --agent fails with sqlite3 "Could not locate the bindings file", run:
+ *   npm rebuild sqlite3
+ *
  * Optional live MCP smoke (needs dist + JIRA_HOST/JIRA_USERNAME/JIRA_API_TOKEN):
  *   bun run build
  *   JIRA_TEST_ISSUE_KEY=SUPP-79 node scripts/sdk/verify-attachments-plan.mjs --agent
@@ -102,7 +105,22 @@ async function runAgentGapReport() {
     process.exit(1);
   }
 
-  const { Agent, CursorAgentError } = await import("@cursor/sdk");
+  let Agent;
+  let CursorAgentError;
+  try {
+    ({ Agent, CursorAgentError } = await import("@cursor/sdk"));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("bindings file") || message.includes("sqlite3")) {
+      console.error(
+        "Cursor SDK (--agent) needs sqlite3 native bindings.\n" +
+          "  npm rebuild sqlite3\n" +
+          "Then rerun: bun run verify-attachments-plan:agent",
+      );
+      process.exit(1);
+    }
+    throw err;
+  }
 
   const distEntry = resolve(ROOT, "dist/index.js");
   const jiraConfigured =

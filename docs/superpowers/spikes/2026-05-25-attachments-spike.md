@@ -53,15 +53,15 @@
 | Проверка                | Результат                      |
 | ----------------------- | ------------------------------ |
 | Scheme                  | `https:`                       |
-| Host                    | тот же origin, что `JIRA_HOST` |
-| Совпадает с `JIRA_HOST` | **да**                         |
+| Host (metadata `content`) | тот же origin, что `JIRA_HOST` |
+| Совпадает с `JIRA_HOST`   | **да** (в поле metadata)       |
 
-**Вердикт для SSRF policy v0.7.0:** достаточно allowlist origin `JIRA_HOST`; отдельный Atlassian CDN host для `contentUrl` на этом инстансе **не** потребовался.
+**Download redirect (2026-05-25):** `GET …/attachment/content/{id}` отвечает **303** на `https://api.media.atlassian.com/file/…/binary` (Jira Cloud Media Services). Allowlist v0.7.0: `JIRA_HOST` + `api.media.atlassian.com`.
 
 ## Влияние на spec / реализацию
 
 1. **ADF Media Resolution** — enrichment filename/mimeType по id остаётся **условным**; для SUPP-79 — unresolved inline + явный список вложений.
-2. **Open Questions (hosts)** — закрыто для данного инстанса: только `JIRA_HOST`.
+2. **Open Questions (hosts)** — `JIRA_HOST` + `api.media.atlassian.com` для redirect при скачивании.
 3. **Acceptance SUPP-79** — агент видит вложение через список + `jira_download_attachment` с `attachmentId: "15894"`; inline block показывает `media id` и `[unresolved]`, не ложный match по UUID.
 4. **Тесты** — unit/fixture ADF с UUID media id + numeric attachment id; integration download на `15894` при наличии credentials.
 
